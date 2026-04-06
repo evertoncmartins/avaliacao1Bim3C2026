@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumo Interativo de Disciplinas</title>
+    <style>
+        :root {
+            --bg-main: #0f0f0f;
+            --bg-panel: #1a1a1a;
+            --bg-hover: #2a2a2a;
+            --text-main: #f0f0f0;
+            --text-muted: #a0a0a0;
+            --primary: #3b82f6;
+            --primary-hover: #60a5fa;
+            --correct: #10b981;
+            --incorrect: #ef4444;
+            --border: #333333;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        header {
+            background-color: var(--bg-panel);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 40px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-right: 30px;
+            color: var(--text-main);
+            letter-spacing: 0.5px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover {
+            border-color: var(--text-muted);
+            color: var(--text-main);
+        }
+
+        .tab-btn.active {
+            color: var(--text-main);
+            border-color: var(--primary);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        aside {
+            width: 280px;
+            background-color: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .week-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .week-btn:hover {
+            background-color: var(--bg-hover);
+            color: var(--text-main);
+        }
+
+        .week-btn.active {
+            background-color: var(--border);
+            color: var(--text-main);
+            font-weight: 500;
+            border-color: var(--text-muted);
+        }
+
+        main {
+            flex: 1;
+            padding: 40px 60px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .content-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            margin-top: 35px;
+            margin-bottom: 15px;
+            color: var(--primary-hover);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+        }
+
+        p, li {
+            line-height: 1.7;
+            font-size: 1.05rem;
+            color: #d4d4d4;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .quiz-section {
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 2px solid var(--border);
+            margin-bottom: 60px;
+        }
+
+        .quiz-title {
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            color: #ffffff;
+        }
+
+        .question-block {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 16px 20px;
+            text-align: left;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background-color: var(--bg-hover);
+            border-color: var(--text-muted);
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--correct);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--incorrect);
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .feedback-msg {
+            margin-top: 15px;
+            font-size: 0.95rem;
+            padding: 12px;
+            border-radius: 6px;
+            display: none;
+            line-height: 1.5;
+        }
+
+        .feedback-msg.correct {
+            display: block;
+            background-color: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--correct);
+            color: var(--correct);
+        }
+
+        .feedback-msg.incorrect {
+            display: block;
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--incorrect);
+            color: var(--incorrect);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="title">Resumo Interativo</div>
+        <div id="discipline-tabs"></div>
+    </header>
+
+    <div class="container">
+        <aside id="week-nav"></aside>
+        
+        <main>
+            <div class="content-wrapper">
+                <div id="lesson-content"></div>
+                <div id="quiz-container" class="quiz-section"></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Banco de Dados de Conteúdo e Quizzes
+        const dbContent = {
+            id: "banco",
+            name: "Modelagem de Banco de Dados",
+            weeks: [
+                {
+                    title: "Semana 1: Conceitos Fundamentais",
+                    content: `
+                        <h1>Levantamento de Dados e Conceitos Fundamentais</h1>
+                        <p>A modelagem de dados surgiu da necessidade de organizar e gerenciar de forma eficiente grandes quantidades de dados acumulados pelas empresas. Uma abordagem estruturada é fundamental para garantir a integridade, a consistência e a acessibilidade das informações.</p>
+                        <h2>Tipos de Bancos de Dados</h2>
+                        <ul>
+                            <li><strong>Relacionais (RDBMS):</strong> Ideais para alta integridade e transações complexas (ex: MySQL, PostgreSQL, Oracle). Utilizam tabelas e relações definidas por chaves primárias e estrangeiras.</li>
+                            <li><strong>Não Relacionais (NoSQL):</strong> Ideais para alta escalabilidade e flexibilidade. Utilizam estruturas como documentos JSON/XML (ex: MongoDB).</li>
+                        </ul>
+                        <h2>Componentes e Fases da Modelagem</h2>
+                        <p>Um banco de dados é composto por Dados, Esquema, Tabelas e o SGBD (Sistema de Gerenciamento). O processo de modelagem é dividido em três fases principais:</p>
+                        <ul>
+                            <li><strong>Modelagem Conceitual:</strong> Foco nas entidades e relacionamentos de alto nível.</li>
+                            <li><strong>Modelagem Lógica:</strong> Transforma o modelo conceitual em tabelas e define chaves.</li>
+                            <li><strong>Modelagem Física:</strong> Implementação real no SGBD (tipos de dados, índices).</li>
+                        </ul>
+                    `,
+                    quizzes: [
+                        {
+                            question: "Qual tipo de banco de dados utiliza tabelas e relações definidas por chaves primárias e estrangeiras?",
+                            options: ["Bancos de dados de documentos (NoSQL)", "Bancos de dados relacionais (RDBMS)", "Arquivos de texto simples", "Planilhas estáticas"],
+                            correctIndex: 1,
+                            feedback: "Correto. Os bancos relacionais utilizam estruturas tabulares e chaves para manter a integridade dos dados."
+                        },
+                        {
+                            question: "Qual fase da modelagem tem como foco exclusivo as entidades e os relacionamentos de alto nível, sem se preocupar com a tecnologia do SGBD?",
+                            options: ["Modelagem Lógica", "Modelagem Física", "Modelagem Conceitual", "Normalização"],
+                            correctIndex: 2,
+                            feedback: "Isso mesmo. A modelagem conceitual foca nas regras de negócio, facilitando o entendimento com o cliente."
+                        },
+                        {
+                            question: "O que significa a sigla SGBD em nossa disciplina?",
+                            options: ["Sistema Geral de Backup de Dados", "Software de Gerenciamento e Busca de Domínios", "Sistema de Gerenciamento de Banco de Dados", "Serviço Global de Bancos Digitais"],
+                            correctIndex: 2,
+                            feedback: "Exato! É o software responsável por gerenciar o acesso, a segurança e a manipulação dos dados."
+                        }
+                    ]
+                },
+                {
+                    title: "Semana 2: Análise de Requisitos",
+                    content: `
+                        <h1>Levantamento de Requisitos e Entidades</h1>
+                        <p>O levantamento de requisitos é a etapa inicial onde se busca entender o que o cliente ou o usuário final necessita. É essencial para garantir que o sistema resolva os problemas identificados.</p>
+                        <h2>Técnicas de Levantamento</h2>
+                        <ul>
+                            <li><strong>Entrevistas:</strong> Conversas diretas com os interessados (ex: um bibliotecário) para identificar as informações a serem gerenciadas.</li>
+                            <li><strong>Questionários:</strong> Utilizados para compreender as necessidades e comportamentos de um grande volume de usuários.</li>
+                            <li><strong>Análise de Dados:</strong> O processo de examinar, limpar e modelar dados para apoiar a tomada de decisões.</li>
+                        </ul>
+                        <h2>Definição de Entidades</h2>
+                        <p>Uma entidade é qualquer coisa sobre a qual você quer coletar dados (ex: Livros, Usuários, Empréstimos). Cada entidade possui características próprias, chamadas de <strong>atributos</strong>.</p>
+                    `,
+                    quizzes: [
+                        {
+                            question: "O que define uma 'entidade' no contexto de banco de dados?",
+                            options: ["Qualquer software utilizado para gerenciar dados.", "Uma característica específica como 'cor' ou 'tamanho'.", "Qualquer coisa (objeto, pessoa ou conceito) sobre a qual se deseja armazenar informações.", "Uma restrição de integridade aplicada a uma tabela."],
+                            correctIndex: 2,
+                            feedback: "Exatamente. Entidades representam objetos do mundo real importantes para o sistema que estamos desenvolvendo."
+                        },
+                        {
+                            question: "Se precisarmos levantar requisitos de milhares de clientes ao mesmo tempo, qual técnica é a mais viável?",
+                            options: ["Entrevistas individuais", "Análise de código-fonte antigo", "Questionários", "Reuniões de Brainstorming com todos os clientes"],
+                            correctIndex: 2,
+                            feedback: "Correto! Questionários escalam facilmente para grandes públicos."
+                        },
+                        {
+                            question: "As características próprias que descrevem uma entidade são chamadas de:",
+                            options: ["Tuplas", "Relacionamentos", "Atributos", "SGBDs"],
+                            correctIndex: 2,
+                            feedback: "Muito bem! Se a entidade é 'Aluno', os atributos seriam 'Nome', 'Matrícula', 'Data de Nascimento', etc."
+                        }
+                    ]
+                },
+                {
+                    title: "Semana 3: Modelo Entidade-Relacionamento (ER)",
+                    content: `
+                        <h1>Modelo ER, Atributos e Chaves</h1>
+                        <p>Um Diagrama de Entidade-Relacionamento (DER) é uma representação visual que ajuda no planejamento da estrutura lógica do banco de dados.</p>
+                        <h2>Componentes do Diagrama ER</h2>
+                        <ul>
+                            <li><strong>Entidades:</strong> Representadas por retângulos.</li>
+                            <li><strong>Atributos:</strong> Representados por elipses ligadas às entidades. São as propriedades (ex: Título, ISBN).</li>
+                            <li><strong>Relacionamentos:</strong> Representados por losangos conectando as entidades.</li>
+                        </ul>
+                        <h2>Chaves Primárias</h2>
+                        <p>A <strong>chave primária (PK)</strong> é um atributo ou conjunto de atributos que identifica de maneira única e exclusiva cada registro. Ela não pode se repetir e não pode ser nula.</p>
+                    `,
+                    quizzes: [
+                        {
+                            question: "Qual é a principal característica de uma Chave Primária?",
+                            options: ["Pode conter valores duplicados para facilitar a busca.", "Identifica de forma única cada registro e não pode ser nula.", "É usada exclusivamente para conectar duas tabelas diferentes.", "Representa sempre um valor de texto."],
+                            correctIndex: 1,
+                            feedback: "Certo! A chave primária (PK) garante a exclusividade e a identificação do registro."
+                        },
+                        {
+                            question: "No Diagrama de Entidade-Relacionamento, qual forma geométrica representa um relacionamento?",
+                            options: ["Retângulo", "Círculo", "Triângulo", "Losango"],
+                            correctIndex: 3,
+                            feedback: "Isso aí. O losango conecta as entidades, contendo muitas vezes um verbo (ex: Aluno 'Cursa' Disciplina)."
+                        },
+                        {
+                            question: "Uma entidade chamada 'Veículo' tem as propriedades: Placa, Cor e Chassi. Como essas propriedades são chamadas na modelagem?",
+                            options: ["Atributos", "Instâncias", "Chaves estrangeiras", "Relacionamentos"],
+                            correctIndex: 0,
+                            feedback: "Perfeito! São os atributos que descrevem os detalhes da nossa entidade."
+                        }
+                    ]
+                },
+                {
+                    title: "Semana 4: Tipos de Relacionamentos",
+                    content: `
+                        <h1>Relacionamentos 1:1, 1:N e N:M</h1>
+                        <p>Os relacionamentos definem como as entidades interagem (cardinalidade).</p>
+                        <h2>Um-para-Um (1:1)</h2>
+                        <p>Ocorre quando um registro se relaciona a, no máximo, um registro de outra tabela. Exemplo: Um usuário possui apenas uma configuração de perfil.</p>
+                        <h2>Um-para-Muitos (1:N)</h2>
+                        <p>Ocorre quando um registro está associado a múltiplos registros em outra entidade, mas os registros dessa outra entidade pertencem a apenas um. Exemplo: Um cliente pode fazer vários pedidos.</p>
+                        <h2>Muitos-para-Muitos (N:M)</h2>
+                        <p>Ocorre quando múltiplas instâncias de uma entidade estão associadas a múltiplas instâncias de outra. Exemplo: Autores e Livros. <strong>Importante:</strong> Relacionamentos N:M exigem a criação de uma tabela de junção (ou associativa) no modelo lógico.</p>
+                    `,
+                    quizzes: [
+                        {
+                            question: "Como um relacionamento Muitos-para-Muitos (N:M) é resolvido na passagem para o modelo lógico?",
+                            options: ["Criando uma Chave Primária repetida.", "Juntando todas as informações em uma única tabela enorme.", "Criando uma tabela de junção (associativa) que recebe as chaves estrangeiras de ambas as entidades.", "Excluindo uma das entidades do projeto."],
+                            correctIndex: 2,
+                            feedback: "Perfeito. A tabela de junção resolve o conflito de cardinalidade N:M na prática."
+                        },
+                        {
+                            question: "Um cliente de um e-commerce pode realizar várias compras, mas cada compra pertence a um único cliente. Qual é a cardinalidade desse relacionamento?",
+                            options: ["1:1 (Um para Um)", "1:N (Um para Muitos)", "N:M (Muitos para Muitos)", "0:N (Zero para Muitos)"],
+                            correctIndex: 1,
+                            feedback: "Correto. É o cenário clássico de 1:N."
+                        },
+                        {
+                            question: "Em um sistema de RH, um 'Funcionário' possui um único 'Crachá', e aquele 'Crachá' pertence exclusivamente a um 'Funcionário'. Qual a cardinalidade?",
+                            options: ["1:1", "1:N", "N:1", "N:M"],
+                            correctIndex: 0,
+                            feedback: "Exato! Relação Um-para-Um, onde cada lado possui no máximo um correspondente no outro."
+                        }
+                    ]
+                },
+                {
+                    title: "Semana 5: Ferramentas de Modelagem",
+                    content: `
+                        <h1>Ferramentas CASE e Implementação</h1>
+                        <p>A utilização de ferramentas de modelagem permite criar diagramas ER, exportar modelos diretamente para scripts SQL e integrar sistemas, aumentando a eficiência e a precisão.</p>
+                        <h2>Exemplos de Ferramentas</h2>
+                        <ul>
+                            <li><strong>MySQL Workbench:</strong> Ferramenta visual que integra design de banco de dados, desenvolvimento SQL, administração e manutenção. Gratuita e focada no ecossistema MySQL.</li>
+                            <li><strong>ER/Studio:</strong> Ferramenta comercial avançada para arquitetura de dados e engenharia de banco de dados em múltiplos SGBDs.</li>
+                        </ul>
+                    `,
+                    quizzes: [
+                        {
+                            question: "Para que serve o MySQL Workbench?",
+                            options: ["É um editor de texto simples para programação web.", "É uma ferramenta para criar diagramas ER, executar queries e gerenciar bancos de dados.", "É um sistema operacional voltado para servidores de dados.", "É exclusivo para criar gráficos de processos de negócios."],
+                            correctIndex: 1,
+                            feedback: "Correto. O Workbench é o ambiente integrado padrão para trabalharmos com o MySQL."
+                        },
+                        {
+                            question: "Qual é uma das grandes vantagens de usar ferramentas de modelagem (Ferramentas CASE)?",
+                            options: ["Elas eliminam a necessidade de entender de SQL.", "Permitem exportar o desenho visual (modelo lógico) diretamente para um script SQL funcional.", "Substituem o papel do Desenvolvedor de Sistemas.", "Funcionam apenas sem conexão com a internet."],
+                            correctIndex: 1,
+                            feedback: "Isso mesmo! O recurso de 'Forward Engineering' converte o diagrama em código SQL automaticamente."
+                        },
+                        {
+                            question: "Qual sigla representa a linguagem padrão utilizada para interagir com bancos de dados relacionais nas ferramentas de modelagem?",
+                            options: ["HTML", "JSON", "SQL", "CSS"],
+                            correctIndex: 2,
+                            feedback: "Exato. SQL (Structured Query Language) é a linguagem que o Workbench e outros sistemas utilizam para manipular os dados."
+                        }
+                    ]
+                },
+                {
+                    title: "Semana 6: Primeira e Segunda Formas Normais",
+                    content: `
+                        <h1>Fundamentos da Normalização (1FN e 2FN)</h1>
+                        <p>A normalização organiza os dados para reduzir redundâncias, melhorar a integridade e facilitar a manutenção, evitando anomalias de inserção, atualização e exclusão.</p>
+                        <h2>Primeira Forma Normal (1NF)</h2>
+                        <p>Garante que todos os atributos sejam atômicos. Ou seja, cada coluna deve conter valores indivisíveis e cada entrada deve ter apenas um valor por coluna. Elimina grupos de repetição.</p>
+                        <h2>Segunda Forma Normal (2NF)</h2>
+                        <p>Para estar na 2NF, a tabela precisa estar na 1NF e não possuir <strong>dependências parciais</strong>. Todos os atributos não-chave devem depender inteiramente da chave primária completa (especialmente em casos de chaves compostas).</p>
+                    `,
+                    quizzes: [
+                        {
+                            question: "Qual é o principal objetivo de aplicar a normalização em um banco de dados?",
+                            options: ["Aumentar a redundância para facilitar o backup.", "Agrupar o máximo de informações em uma única tabela.", "Reduzir redundâncias, anomalias e garantir a integridade dos dados.", "Deixar as consultas de leitura mais lentas propositalmente."],
+                            correctIndex: 2,
+                            feedback: "Isso aí. A normalização foca na estruturação correta e livre de inconsistências."
+                        },
+                        {
+                            question: "O que significa um atributo ser 'atômico' segundo a Primeira Forma Normal (1FN)?",
+                            options: ["Que ele é um número muito pequeno.", "Que ele não pode mais ser dividido em partes menores significativas (ex: ter apenas um telefone por campo).", "Que ele pertence a uma chave estrangeira.", "Que ele está criptografado no banco de dados."],
+                            correctIndex: 1,
+                            feedback: "Correto! Se uma pessoa tem três telefones, não podemos colocar os três no mesmo campo."
+                        },
+                        {
+                            question: "Para uma tabela estar na Segunda Forma Normal (2FN), qual é o primeiro pré-requisito?",
+                            options: ["Estar na Terceira Forma Normal.", "Não possuir chave primária.", "Possuir apenas campos numéricos.", "Estar obrigatoriamente na Primeira Forma Normal (1FN)."],
+                            correctIndex: 3,
+                            feedback: "Exato! A normalização é um processo sequencial e progressivo."
+                        }
+                    ]
+                },
+                {
+                    title: "Semana 7: Terceira Forma Normal (3FN)",
+                    content: `
+                        <h1>Terceira Forma Normal e Desnormalização</h1>
+                        <p>A Terceira Forma Normal (3NF) exige que a tabela esteja na 2NF e que não possua <strong>dependências transitivas</strong>. Isso significa que nenhum atributo não-chave deve depender de outro atributo não-chave.</p>
+                        <h2>Desnormalização</h2>
+                        <p>Embora a normalização seja o padrão, em ambientes onde a velocidade de leitura de dados é crítica, pode-se aplicar a desnormalização controlada. Isso permite acessar dados mais rapidamente reduzindo o número de junções (JOINs), mas aumenta a redundância e o risco de inconsistência.</p>
+                    `,
+                    quizzes: [
+                        {
+                            question: "O que a Terceira Forma Normal (3FN) busca eliminar em uma tabela?",
+                            options: ["Chaves primárias compostas.", "Dependências transitivas entre atributos não-chave.", "Qualquer tipo de chave estrangeira.", "Valores nulos em toda a base de dados."],
+                            correctIndex: 1,
+                            feedback: "Correto. Na 3FN, campos não-chave não podem depender de outros campos não-chave (ex: Calcular o campo 'Total' a partir de 'Quantidade' x 'Preço' no banco)."
+                        },
+                        {
+                            question: "Em que cenário um arquiteto de banco de dados optaria por aplicar a Desnormalização?",
+                            options: ["Para economizar espaço no disco rígido do servidor.", "Quando a performance de leitura (consultas e relatórios) precisa ser extremamente rápida, aceitando certa redundância.", "Para garantir 100% de integridade sem uso de chaves primárias.", "Quando o sistema for utilizado por apenas um usuário por vez."],
+                            correctIndex: 1,
+                            feedback: "Perfeito. Às vezes sacrificamos a perfeição do modelo para que as consultas (JOINs) não deixem o sistema lento em cenários de milhões de acessos."
+                        },
+                        {
+                            question: "Se a tabela 'Pedidos' armazena o ID do Cliente, e também o 'Telefone do Cliente', qual regra de normalização está sendo ferida?",
+                            options: ["1FN", "2FN", "3FN", "Nenhuma, a modelagem está correta."],
+                            correctIndex: 2,
+                            feedback: "Exato! O telefone depende do Cliente, não do Pedido. Isso é uma dependência transitiva (fere a 3FN)."
+                        }
+                    ]
+                }
+            ]
+        };
+
+        const aiContent = {
+            id: "ia",
+            name: "Inteligência Artificial",
+            weeks: [
+                {
+                    title: "Semana 1: O que é Inteligência Artificial?",
+                    content: `
+                        <h1>Conceitos Iniciais sobre IA</h1>
+                        <p>Inteligência Artificial (IA) refere-se a sistemas computacionais capazes de realizar tarefas que normalmente requerem inteligência humana, como reconhecer imagens, processar linguagem natural e raciocinar.</p>
+                        <h2>IA Fraca vs IA Forte</h2>
+                        <ul>
+                            <li><strong>IA Fraca (Narrow AI):</strong> É a IA que temos hoje. Projetada para realizar tarefas específicas e limitadas, sem consciência (ex: ChatGPT, Google Tradutor, AlphaGo).</li>
+                            <li><strong>IA Forte (AGI):</strong> Sistemas hipotéticos capazes de aprender e aplicar conhecimento como um ser humano, realizando qualquer tarefa cognitiva e possuindo consciência.</li>
+                        </ul>
+                        <p>A IA baseia-se em analisar milhões de dados para encontrar padrões e realizar previsões e ações.</p>
+                    `,
+                    quizzes: [
+                        {
+                            question: "O ChatGPT é considerado uma IA Forte por conseguir conversar sobre diversos assuntos?",
+                            options: ["Sim, pois ele entende as emoções humanas.", "Não, ele é uma IA Fraca, especializada e limitada ao processamento de linguagem natural.", "Sim, pois ele já substitui totalmente a criatividade humana.", "Não, pois ele é apenas uma calculadora avançada sem aprendizado."],
+                            correctIndex: 1,
+                            feedback: "Correto. Toda IA atual, por mais avançada que pareça, é classificada como IA Fraca ou Específica."
+                        },
+                        {
+                            question: "Como a maioria das IAs modernas adquire a capacidade de prever ou realizar tarefas?",
+                            options: ["São programadas com regras 'Se-Então' para cada cenário possível no universo.", "Elas adquirem consciência espontânea na nuvem.", "Elas analisam grandes volumes de dados (milhões de exemplos) para encontrar padrões matemáticos.", "Elas leem a mente humana usando conexões Wi-Fi."],
+                            correctIndex: 2,
+                            feedback: "Isso aí. O aprendizado de máquina moderno depende fortemente de grandes conjuntos de dados (Big Data)."
+                        },
+                        {
+                            question: "Qual seria a principal característica de uma 'IA Forte' (AGI)?",
+                            options: ["A capacidade de realizar apenas uma única tarefa melhor que um humano.", "Seria um sistema apenas mecânico, sem software.", "Ter uma interface gráfica moderna e escura.", "Possuir capacidade cognitiva geral, raciocínio e autoconsciência semelhante à humana."],
+                            correctIndex: 3,
+                            feedback: "Exato! A AGI é a IA da ficção científica, capaz de igualar ou superar o cérebro humano em qualquer área."
+                        }
+                    ]
+                },
+                {
+                    title: "Semana 2: História e Evolução da IA",
+                    content: `
+                        <h1>De Turing à Era Generativa</h1>
+                        <p>A história da IA é marcada por picos de grande otimismo e períodos de estagnação chamados de "Invernos da IA".</p>
+                        <h2>Marcos Importantes</h2>
+                        <ul>
+                            <li><strong>1950 - Teste de Turing:</strong> Alan Turing propõe um teste para avaliar se máquinas podem pensar, baseando-se no comportamento.</li>
+                            <li><strong>1997 - Deep Blue:</strong> Supercomputador da IBM que venceu o campeão mundial de xadrez, Kasparov.</li>
+                            <li><strong>Invernos da IA:</strong> Períodos de corte de verbas e pessimismo, gerados por expectativas irreais e limitações de hardware e dados.</li>
+                            <li><strong>Revolução Deep Learning (2012+):</strong> Avanço massivo impulsionado pelo aumento de poder computacional (GPUs) e grandes volumes de dados.</li>
+                        </ul>
+                    `,
+                    quizzes: [
+                        {
+                            question: "O que causou os chamados 'Invernos da IA' no passado?",
+                            options: ["O surgimento da internet que desativou servidores offline.", "Expectativas irreais prometidas por cientistas que esbarraram em limitações de hardware e dados.", "A proibição governamental total de estudos de computação.", "A IA Forte ter se voltado contra os humanos."],
+                            correctIndex: 1,
+                            feedback: "Exato. Promessas exageradas sem a tecnologia necessária geraram perda de credibilidade e cortes de verbas na área."
+                        },
+                        {
+                            question: "Qual era o objetivo principal do famoso 'Teste de Turing'?",
+                            options: ["Medir a velocidade de processamento de um computador da década de 50.", "Provar que computadores podiam jogar xadrez.", "Avaliar a capacidade de uma máquina exibir comportamento inteligente equivalente, ou indistinguível, ao de um humano em uma conversa.", "Avaliar se a máquina poderia traduzir alemão para inglês."],
+                            correctIndex: 2,
+                            feedback: "Correto! Se um avaliador humano não consegue distinguir se está conversando com uma máquina ou com outro humano, a máquina passa no teste."
+                        },
+                        {
+                            question: "O que impulsionou o renascimento da IA (Deep Learning) a partir da década de 2010?",
+                            options: ["A descoberta de uma nova linguagem de programação alienígena.", "O aumento exponencial de poder computacional (uso de GPUs) e a disponibilidade massiva de dados (Big Data).", "A invenção do monitor colorido.", "O abandono do conceito de redes neurais artificiais."],
+                            correctIndex: 1,
+                            feedback: "Perfeito! O hardware acompanhou a teoria matemática, permitindo treinar modelos com milhões de parâmetros."
+                        }
+                    ]
+                },
+                {
+                    title: "Semana 3: A IA no Cotidiano",
+                    content: `
+                        <h1>IA Transformando o Dia a Dia</h1>
+                        <p>A IA está presente de forma invisível em dezoito ações cotidianas através de sistemas de recomendação, otimização de rotas e processamento visual.</p>
+                        <h2>Aplicações Comuns</h2>
+                        <ul>
+                            <li><strong>Transporte:</strong> Apps como Waze analisam dados em tempo real de milhares de usuários para prever congestionamentos e redirecionar rotas. Aplicativos de viagem usam precificação dinâmica baseada em oferta e demanda.</li>
+                            <li><strong>Streaming:</strong> Netflix e Spotify usam 'Filtragem Colaborativa' e análise de padrões para gerar recomendações super personalizadas.</li>
+                            <li><strong>Reconhecimento:</strong> O Face ID mapeia milhares de pontos do rosto, enquanto assistentes virtuais convertem fala em texto instantaneamente.</li>
+                        </ul>
+                    `,
+                    quizzes: [
+                        {
+                            question: "Como o Spotify consegue recomendar músicas tão bem?",
+                            options: ["Apenas classificando as músicas em ordem alfabética.", "Utilizando Filtragem Colaborativa, analisando áudio e cruzando o gosto musical entre diferentes usuários.", "Ouvindo as conversas dos usuários pelo microfone 24h por dia.", "Recomendando apenas os artistas que pagam mais."],
+                            correctIndex: 1,
+                            feedback: "Correto. O sistema cruza padrões de gosto e até analisa propriedades acústicas das faixas."
+                        },
+                        {
+                            question: "Aplicativos de mobilidade (como Uber) alteram o preço da corrida dependendo da chuva ou horário. Que nome damos a isso gerado por IA?",
+                            options: ["Viés cognitivo.", "Precificação Dinâmica.", "Teste de Turing aplicado.", "Filtragem colaborativa geográfica."],
+                            correctIndex: 1,
+                            feedback: "Isso aí! O algoritmo ajusta valores com base na previsão da oferta (motoristas) e demanda (passageiros) em tempo real."
+                        },
+                        {
+                            question: "Tecnologias de desbloqueio facial em celulares dependem de qual campo específico da Inteligência Artificial?",
+                            options: ["Processamento de Linguagem Natural (NLP).", "Robótica de Automação.", "Visão Computacional.", "Sistemas de Recomendação."],
+                            correctIndex: 2,
+                            feedback: "Exato! A Visão Computacional permite que a máquina 'enxergue' e reconheça padrões geométricos faciais."
+                        }
+                    ]
+                },
+                {
+                    title: "Semana 4: Os 4 Tipos de IA por Capacidade",
+                    content: `
+                        <h1>Níveis de Capacidade Cognitiva</h1>
+                        <p>As IAs podem ser classificadas em quatro níveis teóricos de capacidade:</p>
+                        <ul>
+                            <li><strong>1. Máquinas Reativas:</strong> Sem memória ou aprendizado. Dão sempre a mesma resposta ao mesmo estímulo (Ex: Deep Blue jogando xadrez).</li>
+                            <li><strong>2. Memória Limitada:</strong> Aprendem com dados e usam histórico recente para melhorar decisões (Ex: Carros autônomos, ChatGPT, Sistemas de recomendação). <em>95% das IAs modernas estão aqui.</em></li>
+                            <li><strong>3. Teoria da Mente:</strong> IAs em desenvolvimento que seriam capazes de entender emoções e intenções sociais, interagindo de forma empática.</li>
+                            <li><strong>4. Autoconsciência:</strong> Estágio hipotético e ficcional. A máquina saberia que existe e teria sentimentos próprios.</li>
+                        </ul>
+                    `,
+                    quizzes: [
+                        {
+                            question: "Qual tipo de IA descreve sistemas modernos, como os carros autônomos, que utilizam dados passados recentes para tomar decisões no trânsito?",
+                            options: ["Máquinas Reativas", "IA Autoconsciente", "Memória Limitada", "Teoria da Mente"],
+                            correctIndex: 2,
+                            feedback: "Certo! Eles usam o histórico (velocidade, direção dos outros) para se adaptar ao cenário."
+                        },
+                        {
+                            question: "Uma IA que joga xadrez, mas que não aprende com partidas passadas, reagindo apenas ao tabuleiro no momento exato, é classificada como:",
+                            options: ["Máquina Reativa", "Memória Limitada", "Teoria da Mente", "Autoconsciente"],
+                            correctIndex: 0,
+                            feedback: "Perfeito! A supermáquina Deep Blue da IBM era exatamente isso: uma máquina reativa poderosa."
+                        },
+                        {
+                            question: "A categoria 'Teoria da Mente' sugere uma inteligência artificial capaz de:",
+                            options: ["Prever os números da loteria.", "Possuir corpo físico de metal obrigatoriamente.", "Compreender as crenças, intenções, desejos e emoções das entidades com as quais interage.", "Ignorar comandos humanos de forma consciente."],
+                            correctIndex: 2,
+                            feedback: "Correto! Esse é o próximo passo evolutivo da pesquisa: a máquina ter empatia cognitiva."
+                        }
+                    ]
+                },
+                {
+                    title: "Semana 5: Impactos Sociais e Éticos",
+                    content: `
+                        <h1>O Futuro do Trabalho e Privacidade</h1>
+                        <p>O avanço da IA exige que abordemos criticamente seus impactos na sociedade.</p>
+                        <h2>O Paradoxo da Automação</h2>
+                        <p>A IA substitui tarefas rotineiras, mas cria novas profissões (Engenheiro de Prompt, Auditor de Algoritmos). A chave é a <strong>requalificação</strong> (Lifelong Learning) focando no que a IA não faz: empatia, pensamento crítico e criatividade genuína.</p>
+                        <h2>Vieses e Privacidade</h2>
+                        <p>Se treinada com dados históricos enviesados, a IA replicará preconceitos (Ex: sistemas de recrutamento rejeitando minorias). O uso contínuo de apps também gera uma "pegada digital" enorme, que empresas usam para inferir detalhes íntimos e lucrar, exigindo práticas de Higiene Digital e respeito à LGPD.</p>
+                    `,
+                    quizzes: [
+                        {
+                            question: "Qual é a principal causa dos vieses (preconceitos) nos sistemas de Inteligência Artificial?",
+                            options: ["A intenção maliciosa do algoritmo ao adquirir consciência.", "O uso de dados de treinamento desequilibrados que refletem preconceitos históricos da sociedade.", "Um erro de sintaxe nas linguagens de programação modernas.", "A velocidade muito rápida de processamento em nuvem."],
+                            correctIndex: 1,
+                            feedback: "Perfeito. A IA aprende com os dados humanos. Se os dados têm viés, a IA também terá."
+                        },
+                        {
+                            question: "Como o profissional de tecnologia deve encarar o Paradoxo da Automação?",
+                            options: ["Abandonando a área de TI antes que ela acabe.", "Focando em tarefas estritamente operacionais e repetitivas de digitação.", "Através de requalificação contínua (Lifelong Learning), aprimorando habilidades criativas e pensamento crítico.", "Proibindo o uso de ferramentas de IA nas empresas."],
+                            correctIndex: 2,
+                            feedback: "Exato! Habilidades interpessoais (soft skills) e de adaptação são nossas maiores vantagens."
+                        },
+                        {
+                            question: "A coleta massiva de dados para treinar IAs levanta uma importante questão ética envolvendo:",
+                            options: ["A cor dos cabos de rede.", "O consumo de energia de computadores antigos.", "A privacidade dos usuários e a Lei Geral de Proteção de Dados (LGPD).", "A lentidão das conexões de internet discada."],
+                            correctIndex: 2,
+                            feedback: "Correto. O respeito aos dados pessoais é o centro da discussão ética tecnológica hoje."
+                        }
+                    ]
+                },
+                {
+                    title: "Semana 6: IA e Tomada de Decisão",
+                    content: `
+                        <h1>Quando o Algoritmo Decide</h1>
+                        <p>A IA toma decisões críticas hoje, desde aprovar créditos bancários até prever riscos médicos e identificar zonas de crime.</p>
+                        <h2>O Dilema da Transparência</h2>
+                        <p>Muitas redes neurais funcionam como "Caixas Pretas": dão alta performance, mas não explicam o raciocínio. Na Europa e no Brasil, discute-se o direito da explicação e de auditorias em decisões automatizadas críticas.</p>
+                        <h2>Solução de Equilíbrio</h2>
+                        <p>A abordagem <strong>Human in the Loop</strong> sugere que a IA processe a grande massa de dados e indique suspeitas, enquanto humanos tomam a decisão final baseada no contexto ético, unindo velocidade computacional ao julgamento moral.</p>
+                    `,
+                    quizzes: [
+                        {
+                            question: "O que o conceito 'Human in the Loop' defende?",
+                            options: ["Que as IAs substituam os humanos em todas as etapas judiciais.", "Que a Inteligência Artificial deve ser banida das empresas de tecnologia.", "Que a IA processe dados em escala, mas a supervisão e a decisão final em casos críticos caibam a um humano.", "Que os humanos ensinem a IA a sentir emoções reais."],
+                            correctIndex: 2,
+                            feedback: "Correto. O humano atua no ciclo validando e supervisionando decisões de alto risco."
+                        },
+                        {
+                            question: "Na área de IA, o que significa o problema da 'Caixa Preta' (Black Box)?",
+                            options: ["É o material com o qual os servidores de nuvem são construídos.", "A incapacidade de compreender claramente como a rede neural chegou a uma determinada decisão complexa.", "Um erro onde a tela do computador fica escura.", "O bloqueio de algoritmos de código aberto."],
+                            correctIndex: 1,
+                            feedback: "Isso mesmo! Redes Neurais profundas geram caminhos matemáticos tão complexos que fica difícil rastrear o motivo exato de uma resposta."
+                        },
+                        {
+                            question: "Por que decisões automatizadas (ex: negação de crédito) exigem auditorias éticas?",
+                            options: ["Porque os computadores erram os cálculos de soma com frequência.", "Para garantir que o design da interface estava bonito.", "Para verificar se o algoritmo não está discriminando grupos específicos injustamente.", "Porque a IA deve sempre aprovar todos os pedidos de crédito."],
+                            correctIndex: 2,
+                            feedback: "Perfeito. O direito à auditoria garante que a inteligência não está propagando injustiças de forma silenciosa."
+                        }
+                    ]
+                },
+                {
+                    title: "Semana 7: Fundamentos da IA Generativa",
+                    content: `
+                        <h1>Modelos Discriminativos vs Generativos</h1>
+                        <p>A nova era da IA vai além da análise. A IA Generativa é focada em <strong>criar</strong> novos dados que se pareçam com os dados de treinamento originais.</p>
+                        <h2>A Diferença</h2>
+                        <ul>
+                            <li><strong>Modelos Discriminativos:</strong> Tentam classificar ou prever um rótulo. (Ex: Esta foto é de um gato ou cachorro?).</li>
+                            <li><strong>Modelos Generativos:</strong> Entendem a distribuição dos dados para fabricar algo novo. (Ex: Crie a imagem de um gato azul num deserto).</li>
+                        </ul>
+                        <h2>Tecnologias Base</h2>
+                        <p>Utilizam arquiteturas como Transformers (base do GPT) para textos e Modelos de Difusão ou GANs para gerar imagens realistas a partir de ruído.</p>
+                    `,
+                    quizzes: [
+                        {
+                            question: "Qual é o principal foco de um modelo de IA Generativa em contraste com os modelos tradicionais discriminativos?",
+                            options: ["Separar emails de spam com alta precisão.", "Fabricar e criar conteúdos novos inéditos (textos, imagens) baseados nos padrões que aprendeu.", "Realizar operações matemáticas complexas mais rápido.", "Organizar dados estruturados em bancos relacionais."],
+                            correctIndex: 1,
+                            feedback: "Exatamente! A IA Generativa, como o ChatGPT ou o Midjourney, é especialista em criação de novos conteúdos."
+                        },
+                        {
+                            question: "Um sistema de segurança que analisa uma câmera para identificar se a pessoa na porta é o dono da casa usa qual abordagem?",
+                            options: ["Modelo Generativo", "Arquitetura GPT", "Modelo Discriminativo", "Rede Adversarial GAN"],
+                            correctIndex: 2,
+                            feedback: "Correto! Ele está apenas discriminando/classificando a imagem (É o dono? Sim/Não), não está criando uma imagem nova."
+                        },
+                        {
+                            question: "Qual inovação técnica de arquitetura foi a base fundamental para o desenvolvimento dos Grandes Modelos de Linguagem (LLMs) como o GPT?",
+                            options: ["Arquitetura Transformer", "Circuitos Integrados Analógicos", "Bancos de Dados NoSQL", "Modelos de Árvore de Decisão Simples"],
+                            correctIndex: 0,
+                            feedback: "Exato! A arquitetura 'Transformer', apresentada pelo Google em 2017, revolucionou o entendimento de contexto e atenção em textos longos."
+                        }
+                    ]
+                }
+            ]
+        };
+
+        const pmdContent = {
+            id: "projeto",
+            name: "Projeto Multidisciplinar",
+            weeks: [
+                {
+                    title: "Semana 1: Conceitos e Definições",
+                    content: `
+                        <h1>O que é um Projeto?</h1>
+                        <p>Segundo o PMBOK, um projeto é "um <strong>esforço temporário</strong> empreendido para criar um produto, serviço ou resultado <strong>único</strong>". Ele surge em resposta a um problema concreto e transforma ideias em ações.</p>
+                        <h2>Características de um Projeto</h2>
+                        <ul>
+                            <li>Tem um empreendimento único e inovador.</li>
+                            <li>Possui um <strong>ciclo de vida</strong> com início, meio e fim bem definidos.</li>
+                            <li>Tem objetivos específicos, claros e metas mensuráveis.</li>
+                            <li>Usa diferentes recursos (humanos, materiais e financeiros).</li>
+                            <li>É conduzido por pessoas em papéis específicos.</li>
+                        </ul>
+                    `,
+                    quizzes: [
+                        {
+                            question: "Segundo o PMBOK, qual a definição correta de um projeto?",
+                            options: ["Uma rotina de produção contínua em uma fábrica.", "Um esforço temporário empreendido para criar um produto, serviço ou resultado único.", "O uso de qualquer software de design gráfico em equipe.", "A execução diária das tarefas de suporte técnico."],
+                            correctIndex: 1,
+                            feedback: "Correto. O fator 'temporário' (início e fim) e o resultado 'único' são as chaves da definição."
+                        },
+                        {
+                            question: "Qual característica difere um 'Projeto' da rotina normal de uma empresa (Operações)?",
+                            options: ["O projeto não tem data de término prevista.", "Projetos têm início, meio e fim, visando algo único, enquanto a rotina é repetitiva e contínua.", "Projetos só podem ser realizados por uma única pessoa.", "A rotina exige recursos financeiros, o projeto é totalmente gratuito."],
+                            correctIndex: 1,
+                            feedback: "Isso mesmo! Desenvolver o nosso TCC é um projeto; ligar o laboratório de informática todos os dias é operação."
+                        },
+                        {
+                            question: "Por que afirmamos que todo projeto consome 'recursos'?",
+                            options: ["Porque exigem tempo, dinheiro, equipamentos e pessoas dedicadas à sua execução.", "Porque o código-fonte gerado precisa ser salvo em um disco rígido externo.", "Porque é proibido utilizar ferramentas gratuitas da internet.", "Porque todo projeto envolve apenas despesas milionárias."],
+                            correctIndex: 0,
+                            feedback: "Exato. Gerenciar um projeto significa gerenciar esses recursos (esforço humano, tempo e materiais) para o sucesso."
+                        }
+                    ]
+                },
+                {
+                    title: "Semana 2: Ciclo de Vida do Projeto",
+                    content: `
+                        <h1>Fases do Gerenciamento de Projetos</h1>
+                        <p>O ciclo de vida de um projeto é o conjunto de fases sequenciais que o conduzem do início ao fim.</p>
+                        <h2>As 5 Fases Essenciais</h2>
+                        <ol>
+                            <li><strong>Iniciação:</strong> O projeto é oficialmente definido e autorizado (Termo de Abertura). Identificam-se as partes interessadas.</li>
+                            <li><strong>Planejamento:</strong> Detalhamento do escopo, cronograma, custos e gestão de riscos.</li>
+                            <li><strong>Execução:</strong> Implementação do trabalho e gerenciamento de recursos/equipe para atingir o escopo.</li>
+                            <li><strong>Monitoramento e Controle:</strong> Acompanhamento contínuo do progresso, medindo desempenho e aplicando ajustes para não sair do caminho.</li>
+                            <li><strong>Encerramento:</strong> Finalização formal, entrega do resultado e transferência do conhecimento adquirido.</li>
+                        </ol>
+                    `,
+                    quizzes: [
+                        {
+                            question: "Em qual fase do ciclo de vida o escopo, cronograma e orçamentos são definidos detalhadamente?",
+                            options: ["Iniciação", "Encerramento", "Planejamento", "Monitoramento e Controle"],
+                            correctIndex: 2,
+                            feedback: "Perfeito! É no planejamento que o projeto ganha detalhes para sua execução."
+                        },
+                        {
+                            question: "Durante a execução da nossa aplicação, percebemos que o prazo estava atrasando. Qual fase é responsável por avaliar isso e corrigir o rumo?",
+                            options: ["Encerramento", "Monitoramento e Controle", "Planejamento inicial", "Ideação"],
+                            correctIndex: 1,
+                            feedback: "Correto! O controle acontece paralelamente à execução, garantindo que não vamos fugir do plano."
+                        },
+                        {
+                            question: "O Termo de Abertura (oficialização do projeto) e a identificação de quem é impactado (Stakeholders) ocorrem em qual fase?",
+                            options: ["Iniciação", "Execução", "Encerramento", "Desenvolvimento"],
+                            correctIndex: 0,
+                            feedback: "Isso aí! A Iniciação é o ponto de partida onde o projeto é formalmente autorizado a existir."
+                        }
+                    ]
+                },
+                {
+                    title: "Semana 3: O Processo Criativo e Brainstorming",
+                    content: `
+                        <h1>Geração de Ideias</h1>
+                        <p>A criatividade desempenha um papel crucial para identificar temas inovadores, ajudando a transformar problemas vagos em soluções concretas. Para isso, atividades colaborativas de <strong>Brainstorming</strong> são essenciais.</p>
+                        <h2>Mapeamento de Desafios</h2>
+                        <p>No desenvolvimento do Projeto Multidisciplinar, a equipe deve identificar tendências, melhorias ou dores da comunidade. Todas as ideias devem ser geradas sem julgamento inicial, registradas visualmente (usando quadros ou notas adesivas) e depois agrupadas por afinidade para priorização do problema que trará maior benefício social ou técnico.</p>
+                    `,
+                    quizzes: [
+                        {
+                            question: "Qual é o principal objetivo do Brainstorming na fase inicial de um projeto?",
+                            options: ["Criar um cronograma rígido.", "Gerar uma grande quantidade de ideias criativas sem julgamento para encontrar possíveis soluções.", "Distribuir as tarefas financeiras do projeto.", "Desenvolver a documentação técnica de software."],
+                            correctIndex: 1,
+                            feedback: "Correto. O Brainstorming foca na fluidez e volume de ideias criativas."
+                        },
+                        {
+                            question: "Qual é a regra fundamental que NÃO deve ser feita durante uma sessão de Brainstorming com sua equipe de desenvolvimento?",
+                            options: ["Anotar todas as ideias em um quadro.", "Incentivar ideias inovadoras e fora da caixa.", "Julgar e criticar negativamente a ideia do colega logo após ele falar.", "Permitir a combinação de diferentes ideias."],
+                            correctIndex: 2,
+                            feedback: "Exato! Críticas precoces travam a criatividade. O filtro das ideias só ocorre na etapa seguinte de análise."
+                        },
+                        {
+                            question: "Como devemos tratar as dezenas de ideias geradas após a sessão livre acabar?",
+                            options: ["Jogar a maioria fora aleatoriamente.", "Agrupá-las por afinidade temática e priorizar as que mais resolvem as dores da comunidade/usuário.", "Sempre escolher a ideia mais cara para mostrar valor.", "Implementar todas as ideias ao mesmo tempo, sem restrições."],
+                            correctIndex: 1,
+                            feedback: "Muito bem! O agrupamento e a matriz de priorização guiam a equipe rumo à melhor solução."
+                        }
+                    ]
+                },
+                {
+                    title: "Semana 4: Design Thinking - Empatia",
+                    content: `
+                        <h1>Introdução ao Design Thinking</h1>
+                        <p>O Design Thinking é uma abordagem de resolução de problemas que coloca o <strong>usuário no centro</strong> de todo o processo.</p>
+                        <h2>As 5 Fases do Design Thinking</h2>
+                        <p>Empatia → Definição → Ideação → Prototipagem → Teste.</p>
+                        <h2>O Mapa de Empatia</h2>
+                        <p>Para resolver um problema, primeiro precisamos entender as dores de quem sofre com ele. O Mapa de Empatia explora: <em>O que o usuário vê? O que ele ouve? O que pensa e sente? O que fala e faz? Quais as suas dores e necessidades (ganhos)?</em> Indo muito além de dados demográficos rasos.</p>
+                    `,
+                    quizzes: [
+                        {
+                            question: "Qual o objetivo de utilizar um Mapa de Empatia?",
+                            options: ["Criar um orçamento realista para o cliente.", "Entender profundamente o problema, necessidades, dores e percepções do usuário alvo.", "Definir o tempo necessário para executar cada etapa do projeto.", "Programar a interface visual da aplicação."],
+                            correctIndex: 1,
+                            feedback: "Correto. O Design Thinking exige empatia verdadeira para gerar soluções úteis ao cliente real."
+                        },
+                        {
+                            question: "O Design Thinking é conhecido por ter qual entidade no centro do processo criativo?",
+                            options: ["O Lucro da Empresa", "O Gerente de Projetos", "O Banco de Dados", "O Ser Humano (Usuário)"],
+                            correctIndex: 3,
+                            feedback: "Perfeito! A abordagem 'Human-centered' é o coração do Design Thinking."
+                        },
+                        {
+                            question: "Quais são as 5 fases clássicas do Design Thinking?",
+                            options: ["Empatia, Definição, Ideação, Prototipagem e Teste.", "Levantamento, Codificação, Banco de Dados, Redes e Suporte.", "Iniciação, Planejamento, Execução, Monitoramento e Encerramento.", "Apresentação, Avaliação, Feedback, Refatoração e Venda."],
+                            correctIndex: 0,
+                            feedback: "Isso aí. Começamos sentindo a dor do usuário, geramos ideias, fazemos protótipos e testamos."
+                        }
+                    ]
+                },
+                {
+                    title: "Semana 5: Design Thinking - Definição (Matriz CSD)",
+                    content: `
+                        <h1>Estruturando o Problema</h1>
+                        <p>Após compreender o usuário na fase de empatia, organizamos essas percepções usando a <strong>Matriz CSD</strong> (Certezas, Suposições e Dúvidas) para definir com clareza o problema/desafio.</p>
+                        <h2>A Matriz CSD</h2>
+                        <ul>
+                            <li><strong>Certezas:</strong> Fatos validados e confirmados sobre o problema e o usuário.</li>
+                            <li><strong>Suposições:</strong> Hipóteses e achismos que a equipe tem e que precisarão ser testadas.</li>
+                            <li><strong>Dúvidas:</strong> Incertezas e perguntas diretas que exigem pesquisa ou investigação complementar antes de criar o produto.</li>
+                        </ul>
+                    `,
+                    quizzes: [
+                        {
+                            question: "Na Matriz CSD, em qual categoria devemos colocar uma informação que a equipe 'acha' ser verdadeira, mas ainda não comprovou?",
+                            options: ["Certezas", "Variáveis", "Dúvidas", "Suposições"],
+                            correctIndex: 3,
+                            feedback: "Certo! Suposições são hipóteses que guiarão a próxima fase de testes e entrevistas do projeto."
+                        },
+                        {
+                            question: "Qual o propósito principal de usar a Matriz CSD no desenvolvimento de um produto para a comunidade local?",
+                            options: ["Decidir qual linguagem de programação (Python, JS) será usada.", "Calcular as notas finais dos alunos na disciplina.", "Ajudar a equipe a alinhar o que já sabe e direcionar onde precisa de pesquisa antes de programar.", "Gerar senhas criptografadas para os usuários."],
+                            correctIndex: 2,
+                            feedback: "Exato! A matriz tira as incertezas da cabeça de cada um e organiza num quadro visual para toda a equipe."
+                        },
+                        {
+                            question: "Se a equipe sabe documentadamente que '70% dos alunos usam ônibus para chegar à escola', onde esse fato se encaixa na matriz?",
+                            options: ["Dúvidas", "Certezas", "Suposições", "Ideias"],
+                            correctIndex: 1,
+                            feedback: "Muito bem! Fatos comprovados por dados ou pesquisas prévias são Certezas."
+                        }
+                    ]
+                },
+                {
+                    title: "Semana 6: Planejamento Ágil com Scrum",
+                    content: `
+                        <h1>O Framework Scrum</h1>
+                        <p>O Scrum é um framework ágil simples e objetivo focado na entrega de valor. Ele preza por três pilares essenciais: <strong>Transparência, Inspeção e Adaptação</strong>.</p>
+                        <h2>Dinâmica do Scrum</h2>
+                        <p>Projetos são divididos em ciclos curtos chamados <em>Sprints</em>. O conjunto completo de requisitos fica no <em>Product Backlog</em>. No planejamento da Sprint (Sprint Planning), os itens são movidos para o <em>Sprint Backlog</em>.</p>
+                        <p>O progresso é inspecionado através de reuniões diárias rápidas e ajustes ocorrem na Revisão da Sprint.</p>
+                    `,
+                    quizzes: [
+                        {
+                            question: "Quais são os três pilares que sustentam o controle empírico no framework Scrum?",
+                            options: ["Custos, Escopo e Cronograma.", "Transparência, Inspeção e Adaptação.", "Iniciação, Planejamento e Execução.", "Ideação, Prototipagem e Teste."],
+                            correctIndex: 1,
+                            feedback: "Exato. Sem transparência não há inspeção, e sem inspeção não há adaptação."
+                        },
+                        {
+                            question: "No Scrum, como chamamos o ciclo curto de trabalho de tempo fixo (ex: 2 a 4 semanas) no qual criamos a funcionalidade?",
+                            options: ["Waterfall", "Sprint", "Checkpoint", "Deadline"],
+                            correctIndex: 1,
+                            feedback: "Correto! A Sprint é o coração do Scrum, gerando ciclos de entrega contínua."
+                        },
+                        {
+                            question: "A lista completa de tudo que o produto/software vai precisar, priorizada do mais importante ao menos importante, chama-se:",
+                            options: ["Termo de Abertura", "Mapa de Empatia", "Product Backlog", "Requisitos Cascateados"],
+                            correctIndex: 2,
+                            feedback: "Perfeito! O Product Backlog é a fonte única de requisitos gerenciada pelo Product Owner."
+                        }
+                    ]
+                },
+                {
+                    title: "Semana 7: Escopo e Objetivos SMART",
+                    content: `
+                        <h1>Definição do Escopo e Metas</h1>
+                        <p>O escopo detalha o que o projeto vai entregar, envolvendo as Partes Interessadas, Justificativa, Descrição do Produto, Tempo, Custo e Riscos.</p>
+                        <h2>Objetivos SMART</h2>
+                        <p>A finalidade do projeto deve ser clara. O método SMART assegura que o objetivo seja:</p>
+                        <ul>
+                            <li><strong>S (Specific):</strong> Específico e direto.</li>
+                            <li><strong>M (Measurable):</strong> Mensurável (com métricas).</li>
+                            <li><strong>A (Achievable):</strong> Alcançável e realista.</li>
+                            <li><strong>R (Relevant):</strong> Relevante e focado no problema.</li>
+                            <li><strong>T (Time-bound):</strong> Temporal (com um prazo definido).</li>
+                        </ul>
+                    `,
+                    quizzes: [
+                        {
+                            question: "O que significa a letra 'M' na metodologia SMART de definição de metas?",
+                            options: ["Memorável", "Mensurável", "Mutável", "Multidisciplinar"],
+                            correctIndex: 1,
+                            feedback: "Correto. O objetivo deve ser mensurável, permitindo medir se o sucesso foi alcançado."
+                        },
+                        {
+                            question: "Um objetivo formulado como: 'Melhorar o aplicativo do TCC' possui um grande erro segundo o método SMART. Qual é?",
+                            options: ["Ele é muito caro para implementar.", "Ele não é Específico (S) e nem Temporal (T). Melhorar em quê? Até quando?", "Ele não usa a linguagem de programação certa.", "Ele foi definido na fase de encerramento."],
+                            correctIndex: 1,
+                            feedback: "Isso mesmo! Falta especificidade. Um bom objetivo seria: 'Aumentar a base de usuários do app em 20% até dezembro deste ano'."
+                        },
+                        {
+                            question: "Ao definirmos um objetivo como 'Alcançável' (Achievable), o que a equipe do projeto está avaliando?",
+                            options: ["Se temos os recursos e o conhecimento para construir a solução, sem propor algo irreal.", "Se o design visual será agradável.", "Apenas o orçamento financeiro de longo prazo.", "Se o usuário achará a ideia relevante."],
+                            correctIndex: 0,
+                            feedback: "Exato! Propor criar uma inteligência artificial autoconsciente para amanhã não é alcançável (A)."
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // Combinação de todas as disciplinas
+        const allData = [dbContent, aiContent, pmdContent];
+
+        let currentDisciplineIndex = 0;
+        let currentWeekIndex = 0;
+
+        const tabsContainer = document.getElementById('discipline-tabs');
+        const navContainer = document.getElementById('week-nav');
+        const contentContainer = document.getElementById('lesson-content');
+        const quizContainer = document.getElementById('quiz-container');
+
+        function init() {
+            renderTabs();
+            renderView();
+        }
+
+        function renderTabs() {
+            tabsContainer.innerHTML = '';
+            allData.forEach((discipline, index) => {
+                const btn = document.createElement('button');
+                btn.className = `tab-btn ${index === currentDisciplineIndex ? 'active' : ''}`;
+                btn.textContent = discipline.name;
+                btn.onclick = () => {
+                    currentDisciplineIndex = index;
+                    currentWeekIndex = 0;
+                    renderTabs();
+                    renderView();
+                };
+                tabsContainer.appendChild(btn);
+            });
+        }
+
+        function renderView() {
+            const discipline = allData[currentDisciplineIndex];
+            
+            navContainer.innerHTML = '';
+            discipline.weeks.forEach((week, index) => {
+                const btn = document.createElement('button');
+                btn.className = `week-btn ${index === currentWeekIndex ? 'active' : ''}`;
+                btn.textContent = `Semana ${index + 1}`;
+                btn.onclick = () => {
+                    currentWeekIndex = index;
+                    renderView();
+                };
+                navContainer.appendChild(btn);
+            });
+
+            const currentWeek = discipline.weeks[currentWeekIndex];
+            
+            // Renderiza o conteúdo teórico
+            contentContainer.innerHTML = currentWeek.content;
+            
+            // Renderiza os quizzes dinamicamente
+            quizContainer.innerHTML = '<h3 class="quiz-title">Testando o Conhecimento</h3>';
+            
+            if(currentWeek.quizzes && currentWeek.quizzes.length > 0) {
+                currentWeek.quizzes.forEach((quiz, qIndex) => {
+                    const block = document.createElement('div');
+                    block.className = 'question-block';
+                    
+                    const qText = document.createElement('div');
+                    qText.className = 'question-text';
+                    qText.textContent = `${qIndex + 1}. ${quiz.question}`;
+                    block.appendChild(qText);
+
+                    const optionsGrid = document.createElement('div');
+                    optionsGrid.className = 'options-grid';
+
+                    const feedbackDiv = document.createElement('div');
+                    feedbackDiv.className = 'feedback-msg';
+
+                    quiz.options.forEach((optText, optIndex) => {
+                        const optBtn = document.createElement('button');
+                        optBtn.className = 'option-btn';
+                        optBtn.textContent = optText;
+                        
+                        optBtn.onclick = () => {
+                            // Desabilita botões após escolha
+                            const allBtns = optionsGrid.querySelectorAll('.option-btn');
+                            allBtns.forEach(b => b.disabled = true);
+                            
+                            // Lógica de feedback e correção visual
+                            if(optIndex === quiz.correctIndex) {
+                                optBtn.classList.add('correct');
+                                feedbackDiv.classList.add('correct');
+                                feedbackDiv.textContent = quiz.feedback || "Resposta correta!";
+                            } else {
+                                optBtn.classList.add('incorrect');
+                                allBtns[quiz.correctIndex].classList.add('correct');
+                                feedbackDiv.classList.add('incorrect');
+                                feedbackDiv.textContent = "Incorreto. A resposta certa está destacada em verde. Fique atento a este detalhe!";
+                            }
+                        };
+                        optionsGrid.appendChild(optBtn);
+                    });
+
+                    block.appendChild(optionsGrid);
+                    block.appendChild(feedbackDiv);
+                    quizContainer.appendChild(block);
+                });
+            } else {
+                quizContainer.innerHTML += '<p>Não há quiz para esta semana no momento.</p>';
+            }
+        }
+
+        // Inicializa a aplicação
+        init();
+    </script>
+</body>
+</html>
