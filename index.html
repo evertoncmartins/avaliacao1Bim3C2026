@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resumo Interativo - Prof. Everton</title>
+    <title>Resumo Interativo - 3C 2026</title>
     <style>
         :root {
             --bg-main: #0f0f0f;
@@ -13,13 +13,18 @@
             --text-muted: #a0a0a0;
             --primary: #3b82f6;
             --primary-hover: #60a5fa;
-            --correct: #10b981;
-            --incorrect: #ef4444;
             --border: #333333;
+            --correct-ans: #22c55e;
+            --correct-ans-bg: rgba(34, 197, 94, 0.15);
+        }
+
+        /* Reseta o box-sizing para evitar que paddings quebrem a responsividade */
+        *, *::before, *::after {
+            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: var(--bg-main);
             color: var(--text-main);
             margin: 0;
@@ -29,38 +34,28 @@
             overflow: hidden;
         }
 
-        /* HEADER E MENU RESPONSIVO */
+        /* HEADER RESPONSIVO */
         header {
             background-color: var(--bg-panel);
             border-bottom: 1px solid var(--border);
-            padding: 15px 25px;
+            padding: 15px 40px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            position: relative;
+            flex-wrap: wrap;
             z-index: 1000;
         }
 
-        .title { font-size: 1.1rem; font-weight: 600; white-space: nowrap; }
-
-        .menu-toggle {
-            display: none;
-            flex-direction: column;
-            gap: 5px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 10px;
+        .title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
 
-        .menu-toggle span {
-            width: 25px;
-            height: 2px;
-            background: var(--text-main);
-            border-radius: 2px;
+        .nav-links {
+            display: flex;
+            gap: 10px;
         }
-
-        .nav-links { display: flex; gap: 10px; }
 
         .tab-btn {
             background: transparent;
@@ -69,40 +64,80 @@
             padding: 8px 16px;
             cursor: pointer;
             border-radius: 6px;
-            font-size: 0.9rem;
             transition: 0.2s;
+            font-size: 0.95rem;
         }
 
-        .tab-btn.active {
+        .tab-btn.active, .tab-btn:hover {
             color: var(--text-main);
             border-color: var(--primary);
             background: rgba(59, 130, 246, 0.1);
         }
 
+        /* BOTÃO HAMBÚRGUER (Escondido no Desktop) */
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .menu-toggle span {
+            width: 25px;
+            height: 3px;
+            background: var(--text-main);
+            border-radius: 2px;
+            transition: 0.3s;
+        }
+
         /* CONTAINER PRINCIPAL */
-        .container { display: flex; flex: 1; overflow: hidden; }
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
 
         aside {
-            width: 280px;
+            width: 260px;
             background-color: var(--bg-panel);
             border-right: 1px solid var(--border);
             padding: 20px;
             overflow-y: auto;
+            flex-shrink: 0;
         }
 
         main {
             flex: 1;
-            padding: 30px 40px;
+            padding: 40px;
             overflow-y: auto;
+            line-height: 1.6;
             scroll-behavior: smooth;
         }
 
-        /* ESTILOS DE CONTEÚDO */
+        /* PREVENÇÃO DE QUEBRA NO CONTEÚDO INJETADO */
+        main img, main video {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        main pre, main code {
+            max-width: 100%;
+            overflow-x: auto;
+            background: var(--bg-hover);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
         .week-btn {
             display: block;
             width: 100%;
             text-align: left;
-            padding: 12px 15px;
+            padding: 12px;
             margin-bottom: 8px;
             background: transparent;
             border: 1px solid var(--border);
@@ -110,206 +145,208 @@
             border-radius: 6px;
             cursor: pointer;
             transition: 0.2s;
+            font-size: 0.95rem;
         }
 
-        .week-btn.active {
+        .week-btn.active, .week-btn:hover {
             background: var(--bg-hover);
             color: var(--text-main);
             border-color: var(--text-muted);
-            font-weight: 600;
         }
 
+        /* ESTILOS PARA OS QUIZZES */
         .quiz-container {
             background: var(--bg-panel);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 25px;
-            margin-top: 30px;
         }
 
-        .option-btn {
-            display: block;
-            width: 100%;
-            text-align: left;
-            padding: 12px;
+        .quiz-option {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
             margin: 8px 0;
             background: var(--bg-main);
             border: 1px solid var(--border);
-            color: var(--text-main);
             border-radius: 6px;
             cursor: pointer;
+            transition: 0.2s;
         }
 
-        /* MEDIA QUERIES MOBILE */
-        @media (max-width: 768px) {
-            .menu-toggle { display: flex; }
+        .quiz-option:hover {
+            border-color: var(--primary);
+        }
 
-            .nav-links {
-                display: none;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                width: 100%;
-                flex-direction: column;
-                background: var(--bg-panel);
-                padding: 15px;
-                border-bottom: 1px solid var(--border);
-                box-sizing: border-box;
+        .quiz-option.correct-answer {
+            border-color: var(--correct-ans);
+            background: var(--correct-ans-bg);
+            color: #fff;
+            font-weight: bold;
+        }
+
+        /* MEDIA QUERIES PARA MOBILE */
+        @media (max-width: 768px) {
+            header { 
+                padding: 15px 20px; 
+            }
+            
+            .menu-toggle { 
+                display: flex; 
             }
 
-            .nav-links.show { display: flex; }
+            .nav-links {
+                display: none; 
+                width: 100%;
+                flex-direction: column;
+                padding-top: 15px;
+                gap: 5px;
+            }
 
-            .container { flex-direction: column; }
+            .nav-links.show {
+                display: flex;
+            }
 
+            .container { 
+                flex-direction: column; 
+            }
+
+            /* Transformação da Sidebar em Menu Horizontal Rolável no Celular */
             aside {
                 width: 100%;
                 height: auto;
-                max-height: 140px;
                 border-right: none;
                 border-bottom: 1px solid var(--border);
+                padding: 15px;
                 display: flex;
+                flex-direction: row;
                 gap: 10px;
                 overflow-x: auto;
-                padding: 10px 20px;
                 white-space: nowrap;
+                /* Ocultar barra de rolagem horizontal para design mais limpo */
+                -ms-overflow-style: none;  
+                scrollbar-width: none;  
+            }
+
+            aside::-webkit-scrollbar { 
+                display: none; 
             }
 
             .week-btn {
                 display: inline-block;
                 width: auto;
-                padding: 10px 20px;
                 margin-bottom: 0;
+                flex-shrink: 0;
             }
 
-            main { padding: 20px; }
+            main { 
+                padding: 20px 15px; 
+            }
 
-            h1 { font-size: 1.5rem; }
+            .quiz-container {
+                padding: 15px;
+            }
         }
     </style>
 </head>
 <body>
 
-<header>
-    <div class="title">E.E. Pedro José Neto</div>
-    <button class="menu-toggle" onclick="toggleMenu()">
-        <span></span><span></span><span></span>
-    </button>
-    <nav class="nav-links" id="navLinks">
-        <button class="tab-btn active" onclick="switchSubject('bd', this)">Banco de Dados</button>
-        <button class="tab-btn" onclick="switchSubject('ia', this)">I.A.</button>
-        <button class="tab-btn" onclick="switchSubject('redes', this)">Redes</button>
-    </nav>
-</header>
+    <header>
+        <div class="title">Avaliação 1º Bimestre</div>
+        
+        <button class="menu-toggle" onclick="toggleMenu()" aria-label="Abrir menu">
+            <span></span><span></span><span></span>
+        </button>
 
-<div class="container">
-    <aside id="sidebar"></aside>
-    <main id="contentArea"></main>
-</div>
+        <nav class="nav-links" id="navLinks">
+            <button class="tab-btn active" onclick="changeSubject('bd')">Banco de Dados</button>
+            <button class="tab-btn" onclick="changeSubject('ia')">Inteligência Artificial</button>
+            <button class="tab-btn" onclick="changeSubject('redes')">Redes</button>
+        </nav>
+    </header>
 
-<script>
-    // AQUI ENTRA A ESTRUTURA DE DADOS ORIGINAL DO SEU ARQUIVO
-    const subjectData = {
-        bd: {
-            name: "Banco de Dados",
-            weeks: [
-                { 
-                    title: "Semana 1: Introdução", 
-                    content: "<h1>Sistemas de Banco de Dados</h1><p>Conceitos iniciais e a importância dos dados.</p>",
-                    quizzes: [
-                        { question: "O que é um SGBD?", options: ["Um hardware", "Um software de gestão", "Uma linguagem", "Um sistema operacional"], correctIndex: 1, feedback: "Correto! SGBD gerencia o banco." }
-                    ]
-                },
-                // ... (O script original contém as 7 semanas aqui)
+    <div class="container">
+        <aside id="sidebar">
+            </aside>
+        <main id="content">
+            <h1>Bem-vindo.</h1>
+            <p>Selecione uma disciplina e uma semana para revisar o conteúdo.</p>
+        </main>
+    </div>
+
+    <script>
+        // Estrutura de dados com exemplo de Quiz em Banco de Dados
+        const data = {
+            bd: [
+                { title: "Semana 1: Introdução", content: `
+                    <h1>Conceitos de BD</h1>
+                    <p>O conceito fundamental de armazenamento estruturado...</p>
+                    <div class="quiz-container">
+                        <h3>Quiz de Fixação</h3>
+                        <p>Qual das linguagens abaixo é padrão para consultas em Bancos de Dados Relacionais?</p>
+                        <div class="quiz-option">A) Python</div>
+                        <div class="quiz-option">B) HTML</div>
+                        <div class="quiz-option correct-answer">C) SQL</div>
+                        <div class="quiz-option">D) C++</div>
+                        <div class="quiz-option">E) Java</div>
+                    </div>
+                `},
+                { title: "Semana 2: Modelagem", content: "<h1>Entidades e Atributos</h1><p>Explicação sobre Diagrama Entidade Relacionamento (DER)...</p>" }
+            ],
+            ia: [
+                { title: "Semana 1: O que é IA?", content: "<h1>IA e Machine Learning</h1><p>Introdução ao mundo da IA...</p>" }
+            ],
+            redes: [
+                { title: "Semana 1: Topologias", content: "<h1>Estruturas de Rede</h1><p>Conceitos de topologia estrela, anel, barramento...</p>"}
             ]
-        },
-        ia: {
-            name: "Inteligência Artificial",
-            weeks: [
-                { 
-                    title: "Semana 1: Conceitos", 
-                    content: "<h1>O que é IA?</h1><p>IA Fraca vs IA Forte.</p>",
-                    quizzes: [
-                        { question: "O ChatGPT é IA Forte?", options: ["Sim", "Não, é IA Fraca"], correctIndex: 1, feedback: "Isso! É especializada em texto." }
-                    ]
-                }
-            ]
+        };
+
+        function toggleMenu() {
+            document.getElementById('navLinks').classList.toggle('show');
         }
-        // Redes segue a mesma lógica...
-    };
 
-    // Lógica de Navegação
-    function toggleMenu() {
-        document.getElementById('navLinks').classList.toggle('show');
-    }
+        function changeSubject(subject) {
+            const sidebar = document.getElementById('sidebar');
+            const navLinks = document.getElementById('navLinks');
+            
+            // Fecha menu mobile ao selecionar (melhora UX no celular)
+            if(window.innerWidth <= 768) {
+                navLinks.classList.remove('show');
+            }
 
-    function switchSubject(subjectKey, btn) {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById('navLinks').classList.remove('show');
-        renderSidebar(subjectKey);
-    }
+            // Atualiza botões ativos do menu superior
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
 
-    function renderSidebar(subjectKey) {
-        const sidebar = document.getElementById('sidebar');
-        sidebar.innerHTML = '';
-        const data = subjectData[subjectKey];
-        
-        data.weeks.forEach((week, index) => {
-            const button = document.createElement('button');
-            button.className = 'week-btn';
-            button.innerText = week.title;
-            button.onclick = () => renderContent(week, button);
-            sidebar.appendChild(button);
-            if(index === 0) button.click();
-        });
-    }
-
-    function renderContent(week, btn) {
-        document.querySelectorAll('.week-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        
-        let html = week.content;
-        
-        if(week.quizzes && week.quizzes.length > 0) {
-            html += `<div class="quiz-container"><h2>📝 Quiz de Revisão</h2>`;
-            week.quizzes.forEach((q, qIndex) => {
-                html += `<div class="quiz-item">
-                    <p><strong>${qIndex + 1}. ${q.question}</strong></p>
-                    ${q.options.map((opt, i) => `
-                        <button class="option-btn" onclick="checkAnswer(this, ${i}, ${q.correctIndex}, '${q.feedback}')">${opt}</button>
-                    `).join('')}
-                    <div class="feedback" style="display:none; margin-top:10px; font-weight:bold;"></div>
-                </div><hr style="border:0; border-top:1px solid var(--border); margin:20px 0;">`;
-            });
-            html += `</div>`;
+            // Limpa e popula sidebar com as semanas da matéria escolhida
+            sidebar.innerHTML = '';
+            if (data[subject]) {
+                data[subject].forEach((item, index) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'week-btn';
+                    btn.innerText = item.title;
+                    btn.onclick = (e) => {
+                        document.getElementById('content').innerHTML = item.content;
+                        document.querySelectorAll('.week-btn').forEach(b => b.classList.remove('active'));
+                        e.currentTarget.classList.add('active');
+                    };
+                    
+                    // Simula clique na primeira semana para carregar automaticamente
+                    if(index === 0) {
+                        btn.click();
+                    }
+                    
+                    sidebar.appendChild(btn);
+                });
+            }
         }
-        
-        document.getElementById('contentArea').innerHTML = html;
-        if(window.innerWidth < 768) document.getElementById('contentArea').scrollIntoView();
-    }
 
-    function checkAnswer(btn, selected, correct, feedback) {
-        const parent = btn.parentElement;
-        const feedbackDiv = parent.querySelector('.feedback');
-        const buttons = parent.querySelectorAll('.option-btn');
-        
-        buttons.forEach(b => b.disabled = true);
-        
-        if(selected === correct) {
-            btn.style.backgroundColor = "var(--correct)";
-            feedbackDiv.style.color = "var(--correct)";
-            feedbackDiv.innerText = "✅ " + feedback;
-        } else {
-            btn.style.backgroundColor = "var(--incorrect)";
-            feedbackDiv.style.color = "var(--incorrect)";
-            feedbackDiv.innerText = "❌ Incorreto. Tente novamente após revisar.";
-        }
-        feedbackDiv.style.display = "block";
-    }
-
-    // Inicialização
-    window.onload = () => switchSubject('bd', document.querySelector('.tab-btn'));
-</script>
-
+        // Iniciar com a primeira disciplina (usando dispatchEvent para simular o clique e aplicar o active corretamente)
+        window.onload = () => {
+            const firstTab = document.querySelector('.tab-btn');
+            firstTab.click();
+        };
+    </script>
 </body>
 </html>
