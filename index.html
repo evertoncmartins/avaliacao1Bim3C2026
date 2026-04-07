@@ -3,350 +3,717 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resumo Interativo - 3C 2026</title>
+    <title>Resumo Interativo - Desenvolvimento de Sistemas</title>
     <style>
         :root {
-            --bg-main: #0f0f0f;
-            --bg-panel: #1a1a1a;
+            --bg-dark: #121212;
+            --bg-panel: #1e1e1e;
             --bg-hover: #2a2a2a;
-            --text-main: #f0f0f0;
+            --text-main: #e0e0e0;
             --text-muted: #a0a0a0;
-            --primary: #3b82f6;
-            --primary-hover: #60a5fa;
-            --border: #333333;
-            --correct-ans: #22c55e;
-            --correct-ans-bg: rgba(34, 197, 94, 0.15);
+            --accent: #4da6ff;
+            --accent-hover: #3388dd;
+            --correct: #2e7d32;
+            --incorrect: #c62828;
+            --border: #333;
         }
 
-        /* Reseta o box-sizing para evitar que paddings quebrem a responsividade */
-        *, *::before, *::after {
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-main);
+            background-color: var(--bg-dark);
             color: var(--text-main);
-            margin: 0;
             display: flex;
-            flex-direction: column;
             height: 100vh;
             overflow: hidden;
+            line-height: 1.6;
         }
 
-        /* HEADER RESPONSIVO */
-        header {
+        /* Sidebar de Navegação */
+        #sidebar {
+            width: 300px;
             background-color: var(--bg-panel);
-            border-bottom: 1px solid var(--border);
-            padding: 15px 40px;
+            border-right: 1px solid var(--border);
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
+            flex-direction: column;
+            transition: transform 0.3s ease;
             z-index: 1000;
         }
 
-        .title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--accent);
         }
 
-        .nav-links {
-            display: flex;
-            gap: 10px;
+        .nav-content {
+            flex-grow: 1;
+            overflow-y: auto;
         }
 
-        .tab-btn {
-            background: transparent;
-            color: var(--text-muted);
-            border: 1px solid var(--border);
-            padding: 8px 16px;
-            cursor: pointer;
-            border-radius: 6px;
-            transition: 0.2s;
-            font-size: 0.95rem;
-        }
-
-        .tab-btn.active, .tab-btn:hover {
-            color: var(--text-main);
-            border-color: var(--primary);
-            background: rgba(59, 130, 246, 0.1);
-        }
-
-        /* BOTÃO HAMBÚRGUER (Escondido no Desktop) */
-        .menu-toggle {
-            display: none;
-            flex-direction: column;
-            gap: 5px;
+        .discipline-btn {
+            width: 100%;
             background: none;
             border: none;
+            color: var(--text-main);
+            text-align: left;
+            padding: 15px 20px;
+            font-size: 1.05rem;
+            font-weight: bold;
             cursor: pointer;
-            padding: 5px;
+            border-bottom: 1px solid var(--border);
         }
 
-        .menu-toggle span {
-            width: 25px;
-            height: 3px;
-            background: var(--text-main);
-            border-radius: 2px;
-            transition: 0.3s;
+        .discipline-btn:hover { background-color: var(--bg-hover); }
+
+        .week-list {
+            list-style: none;
+            display: none;
+            background-color: #171717;
         }
 
-        /* CONTAINER PRINCIPAL */
-        .container {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
-
-        aside {
-            width: 260px;
-            background-color: var(--bg-panel);
-            border-right: 1px solid var(--border);
-            padding: 20px;
-            overflow-y: auto;
-            flex-shrink: 0;
-        }
-
-        main {
-            flex: 1;
-            padding: 40px;
-            overflow-y: auto;
-            line-height: 1.6;
-            scroll-behavior: smooth;
-        }
-
-        /* PREVENÇÃO DE QUEBRA NO CONTEÚDO INJETADO */
-        main img, main video {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            margin: 15px 0;
-        }
-        
-        main pre, main code {
-            max-width: 100%;
-            overflow-x: auto;
-            background: var(--bg-hover);
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
+        .week-list.active { display: block; }
 
         .week-btn {
-            display: block;
             width: 100%;
-            text-align: left;
-            padding: 12px;
-            margin-bottom: 8px;
-            background: transparent;
-            border: 1px solid var(--border);
+            background: none;
+            border: none;
             color: var(--text-muted);
-            border-radius: 6px;
-            cursor: pointer;
-            transition: 0.2s;
+            text-align: left;
+            padding: 12px 20px 12px 40px;
             font-size: 0.95rem;
+            cursor: pointer;
         }
 
-        .week-btn.active, .week-btn:hover {
-            background: var(--bg-hover);
-            color: var(--text-main);
-            border-color: var(--text-muted);
+        .week-btn:hover, .week-btn.selected {
+            background-color: var(--bg-hover);
+            color: var(--accent);
+            border-left: 4px solid var(--accent);
+            padding-left: 36px;
         }
 
-        /* ESTILOS PARA OS QUIZZES */
+        /* Área de Conteúdo Principal */
+        #main-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 40px;
+            position: relative;
+        }
+
+        .content-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 { color: var(--accent); margin-bottom: 10px; }
+        h2 { margin-top: 30px; margin-bottom: 15px; color: #fff; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+        h3 { margin-top: 20px; margin-bottom: 10px; color: #ddd; }
+        p { margin-bottom: 15px; }
+        ul { margin-bottom: 15px; padding-left: 20px; }
+        li { margin-bottom: 5px; }
+
+        /* Quizzes */
         .quiz-container {
-            background: var(--bg-panel);
-            padding: 20px;
+            background-color: var(--bg-panel);
+            padding: 25px;
             border-radius: 8px;
-            margin-top: 20px;
+            margin-top: 40px;
             border: 1px solid var(--border);
         }
 
-        .quiz-option {
-            display: flex;
-            align-items: center;
-            padding: 12px 15px;
-            margin: 8px 0;
-            background: var(--bg-main);
+        .question-block { margin-bottom: 25px; }
+        .question-text { font-weight: bold; margin-bottom: 15px; font-size: 1.1rem; }
+        
+        .option-label {
+            display: block;
+            padding: 10px 15px;
+            background-color: var(--bg-dark);
             border: 1px solid var(--border);
-            border-radius: 6px;
+            margin-bottom: 8px;
+            border-radius: 4px;
             cursor: pointer;
             transition: 0.2s;
         }
 
-        .quiz-option:hover {
-            border-color: var(--primary);
-        }
+        .option-label:hover { background-color: var(--bg-hover); }
+        .option-label input { margin-right: 10px; }
 
-        .quiz-option.correct-answer {
-            border-color: var(--correct-ans);
-            background: var(--correct-ans-bg);
+        .btn-submit {
+            background-color: var(--accent);
             color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn-submit:hover { background-color: var(--accent-hover); }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
             font-weight: bold;
         }
+        .feedback.correct { display: block; background-color: rgba(46, 125, 50, 0.2); color: #4caf50; border: 1px solid var(--correct); }
+        .feedback.incorrect { display: block; background-color: rgba(198, 40, 40, 0.2); color: #ef5350; border: 1px solid var(--incorrect); }
 
-        /* MEDIA QUERIES PARA MOBILE */
+        /* Bloco LaTeX (Para o Professor) */
+        .latex-container {
+            margin-top: 50px;
+            background-color: #000;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px dashed #555;
+        }
+        .latex-container h3 { color: #888; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+        pre { white-space: pre-wrap; color: #a5d6ff; font-family: monospace; font-size: 0.9rem; }
+
+        /* Menu Mobile */
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 2000;
+            background-color: var(--bg-panel);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
         @media (max-width: 768px) {
-            header { 
-                padding: 15px 20px; 
+            .mobile-toggle { display: block; }
+            #sidebar {
+                position: fixed;
+                height: 100%;
+                transform: translateX(-100%);
             }
-            
-            .menu-toggle { 
-                display: flex; 
-            }
-
-            .nav-links {
-                display: none; 
-                width: 100%;
-                flex-direction: column;
-                padding-top: 15px;
-                gap: 5px;
-            }
-
-            .nav-links.show {
-                display: flex;
-            }
-
-            .container { 
-                flex-direction: column; 
-            }
-
-            /* Transformação da Sidebar em Menu Horizontal Rolável no Celular */
-            aside {
-                width: 100%;
-                height: auto;
-                border-right: none;
-                border-bottom: 1px solid var(--border);
-                padding: 15px;
-                display: flex;
-                flex-direction: row;
-                gap: 10px;
-                overflow-x: auto;
-                white-space: nowrap;
-                /* Ocultar barra de rolagem horizontal para design mais limpo */
-                -ms-overflow-style: none;  
-                scrollbar-width: none;  
-            }
-
-            aside::-webkit-scrollbar { 
-                display: none; 
-            }
-
-            .week-btn {
-                display: inline-block;
-                width: auto;
-                margin-bottom: 0;
-                flex-shrink: 0;
-            }
-
-            main { 
-                padding: 20px 15px; 
-            }
-
-            .quiz-container {
-                padding: 15px;
-            }
+            #sidebar.open { transform: translateX(0); }
+            #main-content { padding: 60px 20px 20px 20px; }
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="title">Avaliação 1º Bimestre</div>
-        
-        <button class="menu-toggle" onclick="toggleMenu()" aria-label="Abrir menu">
-            <span></span><span></span><span></span>
-        </button>
+    <button class="mobile-toggle" onclick="toggleMenu()">Menu</button>
 
-        <nav class="nav-links" id="navLinks">
-            <button class="tab-btn active" onclick="changeSubject('bd')">Banco de Dados</button>
-            <button class="tab-btn" onclick="changeSubject('ia')">Inteligência Artificial</button>
-            <button class="tab-btn" onclick="changeSubject('redes')">Redes</button>
-        </nav>
-    </header>
+    <div id="sidebar">
+        <div class="sidebar-header">Resumos Interativos</div>
+        <div class="nav-content" id="nav-container"></div>
+    </div>
 
-    <div class="container">
-        <aside id="sidebar">
-            </aside>
-        <main id="content">
-            <h1>Bem-vindo.</h1>
-            <p>Selecione uma disciplina e uma semana para revisar o conteúdo.</p>
-        </main>
+    <div id="main-content">
+        <div class="content-container">
+            <h3 id="disc-title">Selecione uma disciplina</h3>
+            <h1 id="week-title">Bem-vindo aos estudos</h1>
+            <div id="text-content">
+                <p>Utilize o menu lateral para navegar entre os resumos das 3 disciplinas abordadas. Após ler o material de cada semana, você poderá testar seus conhecimentos através do Quiz de fixação.</p>
+            </div>
+            
+            <div id="quiz-area"></div>
+            <div id="latex-area"></div>
+        </div>
     </div>
 
     <script>
-        // Estrutura de dados com exemplo de Quiz em Banco de Dados
-        const data = {
-            bd: [
-                { title: "Semana 1: Introdução", content: `
-                    <h1>Conceitos de BD</h1>
-                    <p>O conceito fundamental de armazenamento estruturado...</p>
-                    <div class="quiz-container">
-                        <h3>Quiz de Fixação</h3>
-                        <p>Qual das linguagens abaixo é padrão para consultas em Bancos de Dados Relacionais?</p>
-                        <div class="quiz-option">A) Python</div>
-                        <div class="quiz-option">B) HTML</div>
-                        <div class="quiz-option correct-answer">C) SQL</div>
-                        <div class="quiz-option">D) C++</div>
-                        <div class="quiz-option">E) Java</div>
-                    </div>
-                `},
-                { title: "Semana 2: Modelagem", content: "<h1>Entidades e Atributos</h1><p>Explicação sobre Diagrama Entidade Relacionamento (DER)...</p>" }
-            ],
-            ia: [
-                { title: "Semana 1: O que é IA?", content: "<h1>IA e Machine Learning</h1><p>Introdução ao mundo da IA...</p>" }
-            ],
-            redes: [
-                { title: "Semana 1: Topologias", content: "<h1>Estruturas de Rede</h1><p>Conceitos de topologia estrela, anel, barramento...</p>"}
-            ]
+        const contentData = {
+            "banco": {
+                name: "Modelagem de Banco de Dados",
+                weeks: [
+                    {
+                        title: "Semana 1: Introdução à Modelagem",
+                        text: `<h2>Levantamento de Dados e Conceitos Fundamentais</h2>
+                               <p>A modelagem de dados surgiu da necessidade de organizar as crescentes quantidades de informações corporativas. Com os computadores, tornou-se evidente que uma abordagem estruturada era fundamental para garantir a integridade e acessibilidade dos dados.</p>
+                               <p><strong>Tipos de Bancos de Dados:</strong></p>
+                               <ul>
+                                 <li><strong>Relacionais (RDBMS):</strong> Usam tabelas (linhas e colunas) e chaves (primárias/estrangeiras). Exemplos: MySQL, Oracle, PostgreSQL.</li>
+                                 <li><strong>Não Relacionais (NoSQL):</strong> Alta escalabilidade e flexibilidade, lidam com dados não estruturados (ex: documentos JSON/XML como MongoDB).</li>
+                               </ul>
+                               <p>Os componentes principais incluem os Dados, o Esquema (estrutura), o SGBD (Sistema de Gerenciamento) e as Tabelas.</p>`,
+                        question: {
+                            text: "Qual dos seguintes sistemas é um exemplo clássico de Banco de Dados Relacional (RDBMS)?",
+                            options: [
+                                "MongoDB, focado em documentos JSON.",
+                                "Hadoop, focado em processamento distribuído.",
+                                "MySQL, que utiliza tabelas e chaves primárias.",
+                                "Redis, focado em chave-valor em memória.",
+                                "Neo4j, focado em grafos não estruturados."
+                            ],
+                            correct: 2
+                        }
+                    },
+                    {
+                        title: "Semana 2: Requisitos e Análise",
+                        text: `<h2>Levantamento de Requisitos e Análise de Dados</h2>
+                               <p>O levantamento de requisitos é a etapa inicial em que buscamos entender o que o cliente necessita. Isso garante que o sistema atenda às expectativas e resolva o problema. A análise de dados foca em examinar, limpar e modelar dados para apoiar a tomada de decisões.</p>`,
+                        question: {
+                            text: "Por que o levantamento de requisitos é uma fase crítica no projeto de banco de dados?",
+                            options: [
+                                "Porque substitui a necessidade de programar o SGBD.",
+                                "Porque garante que o sistema desenvolvido atenderá às necessidades reais do cliente.",
+                                "Porque elimina a necessidade de criar tabelas e relacionamentos.",
+                                "Para que o cliente faça o trabalho de programação no lugar do desenvolvedor.",
+                                "Para definir imediatamente qual hardware físico será comprado."
+                            ],
+                            correct: 1
+                        }
+                    },
+                    {
+                        title: "Semana 3: Modelo Entidade-Relacionamento (ER)",
+                        text: `<h2>Diagrama ER e Componentes</h2>
+                               <p><strong>Entidade:</strong> Objeto ou conceito do mundo real sobre o qual desejamos armazenar informações.</p>
+                               <p><strong>Atributos:</strong> Propriedades que descrevem a entidade. A <em>Chave Primária</em> é o atributo que identifica de forma única cada registro, não podendo ser nula.</p>
+                               <p><strong>Relacionamento:</strong> Como as entidades interagem (ex: 1:1, 1:N, N:M).</p>`,
+                        question: {
+                            text: "Qual é a principal função de uma Chave Primária em uma tabela?",
+                            options: [
+                                "Relacionar duas tabelas que não possuem dados em comum.",
+                                "Armazenar o maior volume de dados possível em uma única coluna.",
+                                "Ocultar informações sensíveis dos usuários do banco de dados.",
+                                "Identificar de maneira única e exclusiva cada registro dentro de uma entidade.",
+                                "Permitir que múltiplos registros tenham identificadores idênticos e nulos."
+                            ],
+                            correct: 3
+                        }
+                    },
+                    {
+                        title: "Semana 4: Ferramentas de Modelagem",
+                        text: `<h2>MySQL Workbench e ER/Studio</h2>
+                               <p>O MySQL Workbench é uma ferramenta visual que permite criar diagramas ER, gerenciar bancos de dados e desenvolver a estrutura lógica e física. Ferramentas CASE como o ER/Studio auxiliam na exportação de modelos e integração direta com o SGBD, aumentando a precisão da modelagem.</p>`,
+                        question: {
+                            text: "Qual é a principal função do MySQL Workbench em relação ao MySQL Server?",
+                            options: [
+                                "Desenvolver aplicativos mobile nativos.",
+                                "Navegar na web com segurança criptografada.",
+                                "Gerenciar visualmente o banco de dados e criar diagramas ER.",
+                                "Apenas editar textos simples de documentação.",
+                                "Funcionamento como sistema operacional independente."
+                            ],
+                            correct: 2
+                        }
+                    },
+                    {
+                        title: "Semana 5: Relacionamentos 1:1",
+                        text: `<h2>Relacionamento Um-para-Um (1:1)</h2>
+                               <p>Ocorre quando um registro em uma tabela está relacionado a, no máximo, um registro em outra tabela. Usado frequentemente por razões de segurança ou organização para manter dados separados (ex: Usuário e Configurações de Conta; Pessoa e Identidade Legal).</p>`,
+                        question: {
+                            text: "Em qual cenário é mais adequado utilizar um relacionamento 1:1?",
+                            options: [
+                                "Quando um cliente pode realizar vários pedidos ao longo do mês.",
+                                "Quando um produto pertence a dezenas de categorias diferentes.",
+                                "Para separar os dados básicos de um paciente do seu prontuário médico confidencial único.",
+                                "Quando um professor ministra várias disciplinas diferentes.",
+                                "Quando uma turma possui dezenas de alunos matriculados."
+                            ],
+                            correct: 2
+                        }
+                    },
+                    {
+                        title: "Semana 6: Relacionamentos 1:N",
+                        text: `<h2>Relacionamento Um-para-Muitos (1:N)</h2>
+                               <p>Descreve a situação onde um único registro em uma entidade está associado a múltiplos registros em outra entidade. A tabela do lado 'muitos' recebe a Chave Estrangeira que aponta para a Chave Primária do lado 'um'. Ex: Um Cliente pode fazer vários Pedidos.</p>`,
+                        question: {
+                            text: "Na implementação de um relacionamento 1:N entre 'Cliente' e 'Pedido', onde a chave estrangeira deve ser colocada?",
+                            options: [
+                                "Na tabela Cliente, apontando para si mesma.",
+                                "Na tabela Cliente, referenciando o Pedido.",
+                                "Na tabela Pedido, referenciando a chave primária da tabela Cliente.",
+                                "Em uma terceira tabela auxiliar criada apenas para este fim.",
+                                "As chaves estrangeiras não são utilizadas em relacionamentos 1:N."
+                            ],
+                            correct: 2
+                        }
+                    },
+                    {
+                        title: "Semana 7: Relacionamentos N:M e Normalização",
+                        text: `<h2>Relacionamento Muitos-para-Muitos (N:M)</h2>
+                               <p>Ocorre quando múltiplas instâncias de uma entidade estão associadas a múltiplas instâncias de outra (Ex: Alunos e Cursos). Para implementar em bancos relacionais, cria-se uma <strong>Tabela de Junção</strong> (ou associativa) contendo as chaves primárias das duas entidades originais.</p>`,
+                        question: {
+                            text: "Como o relacionamento N:M é resolvido na modelagem física de um banco de dados relacional?",
+                            options: [
+                                "Duplicando as colunas em ambas as tabelas originais.",
+                                "Criando uma Tabela de Junção (intermediária) contendo as chaves estrangeiras das entidades envolvidas.",
+                                "Deletando uma das entidades para evitar redundância de dados.",
+                                "Forçando o banco de dados a usar apenas relacionamentos 1:1.",
+                                "Armazenando os múltiplos valores em uma única célula de texto separada por vírgulas."
+                            ],
+                            correct: 1
+                        }
+                    }
+                ]
+            },
+            "ia": {
+                name: "Inteligência Artificial",
+                weeks: [
+                    {
+                        title: "Semana 1: O que é Inteligência Artificial?",
+                        text: `<h2>O que é IA?</h2>
+                               <p>A Inteligência Artificial (IA) aborda sistemas computacionais capazes de realizar tarefas que normalmente requerem inteligência humana. Ela envolve reconhecer padrões, raciocinar, aprender e comunicar.</p>
+                               <p><strong>IA Fraca vs IA Forte:</strong> Toda IA atual é considerada "Fraca" (Narrow AI), pois resolve problemas específicos em domínios restritos (ex: AlphaGo joga bem xadrez/Go, mas não dirige carros). A IA "Forte" (AGI) que imita integralmente a mente humana, com consciência, ainda é ficção.</p>`,
+                        question: {
+                            text: "Com base na classificação atual de Inteligência Artificial, o ChatGPT é considerado qual tipo de IA?",
+                            options: [
+                                "Inteligência Artificial Forte (AGI), pois possui sentimentos e consciência própria.",
+                                "Inteligência Artificial Fraca (Narrow AI), pois é especializado e treinado para processar linguagem natural.",
+                                "Máquina puramente reativa sem nenhuma memória de curto prazo.",
+                                "Inteligência Artificial Superinteligente (ASI).",
+                                "IA do tipo Teoria da Mente, pois compreende perfeitamente a psique humana."
+                            ],
+                            correct: 1
+                        }
+                    },
+                    {
+                        title: "Semana 2: História da IA",
+                        text: `<h2>Evolução e os Invernos da IA</h2>
+                               <p>A história da IA começou com Alan Turing em 1950 (Teste de Turing). Ao longo das décadas, o otimismo exagerado gerou os "Invernos da IA", períodos de corte de verbas por não cumprimento das promessas tecnológicas devido a limitações de hardware e dados.</p>`,
+                        question: {
+                            text: "Qual foi o principal motivo para a ocorrência dos períodos conhecidos como 'Invernos da IA'?",
+                            options: [
+                                "A destruição dos computadores por vírus em massa nos anos 70.",
+                                "Expectativas irreais e promessas não cumpridas confrontadas com limitações técnicas e de hardware da época.",
+                                "A proibição governamental definitiva de qualquer pesquisa em computação.",
+                                "O sucesso absoluto das redes neurais, que não necessitavam mais de pesquisa.",
+                                "A falta total de interesse da mídia e da sociedade pelo tema tecnológico."
+                            ],
+                            correct: 1
+                        }
+                    },
+                    {
+                        title: "Semana 3: A IA no Cotidiano",
+                        text: `<h2>A IA na nossa rotina</h2>
+                               <p>Interagimos com IA dezenas de vezes por dia. Aplicativos de mobilidade usam IA para rotas e preços dinâmicos. Serviços de streaming usam IA (Sistema de Recomendação Triplo) para sugerir conteúdo baseado no comportamento do usuário (onde clica, o que assiste). Reconhecimento facial (Face ID) usa IA para mapear o rosto através de infravermelho.</p>`,
+                        question: {
+                            text: "Como plataformas de streaming (como o Spotify) conseguem recomendar músicas de artistas que você nunca ouviu?",
+                            options: [
+                                "Através de gravação constante das suas conversas diárias pelo microfone.",
+                                "Pois os artistas pagam taxas fixas para que as IAs burlem o algoritmo.",
+                                "Analisando padrões complexos e utilizando filtragem colaborativa baseada no comportamento de usuários semelhantes.",
+                                "Pois a seleção de músicas em plataformas digitais é 100% aleatória.",
+                                "Através da dedução manual feita por funcionários humanos."
+                            ],
+                            correct: 2
+                        }
+                    },
+                    {
+                        title: "Semana 4: Tipos de IA (Reativa e Memória)",
+                        text: `<h2>Máquinas Reativas e Memória Limitada</h2>
+                               <p><strong>Máquinas Reativas:</strong> Sem memória. Dão respostas fixas a estímulos. (Ex: Deep Blue da IBM). Ótimas para ambientes previsíveis.</p>
+                               <p><strong>Memória Limitada:</strong> A maioria das IAs de hoje. Aprendem com dados históricos para tomar decisões no presente (Ex: Carros autônomos, assistentes de voz).</p>`,
+                        question: {
+                            text: "O supercomputador Deep Blue, que derrotou o campeão mundial de xadrez Kasparov, é um exemplo clássico de qual tipo de IA?",
+                            options: [
+                                "IA de Teoria da Mente.",
+                                "IA com Autoconsciência plena.",
+                                "Máquina Reativa (sem memória ou aprendizado de longo prazo).",
+                                "IA com Memória Limitada Avançada.",
+                                "Inteligência Artificial Geral (AGI)."
+                            ],
+                            correct: 2
+                        }
+                    },
+                    {
+                        title: "Semana 5: Impactos Sociais e Éticos",
+                        text: `<h2>Vieses e Privacidade</h2>
+                               <p>A IA pode herdar vieses humanos se os dados de treinamento não forem diversificados, gerando decisões discriminatórias. A privacidade também é um risco, pois as pegadas digitais alimentam algoritmos hiper-personalizados. A União Europeia aprovou o 'AI Act' proibindo IA de 'score social governamental'.</p>`,
+                        question: {
+                            text: "O que é a principal causa da presença de vieses discriminatórios em sistemas de Inteligência Artificial?",
+                            options: [
+                                "Bugs aleatórios no código fonte das linguagens de programação.",
+                                "A capacidade de processamento excessiva dos supercomputadores.",
+                                "Dados de treinamento históricos que já refletem preconceitos e desigualdades da sociedade humana.",
+                                "A intenção programada dos computadores de assumir o controle global.",
+                                "A utilização exclusiva de software de código aberto."
+                            ],
+                            correct: 2
+                        }
+                    },
+                    {
+                        title: "Semana 6: IA e Tomada de Decisão",
+                        text: `<h2>Decisões Críticas e Transparência</h2>
+                               <p>IAs estão tomando decisões em crédito financeiro, saúde e justiça preditiva. Surge o dilema: "Caixa Preta" (alta precisão mas inexplicável) vs "IA Explicável" (XAI). Em decisões sensíveis, adota-se o modelo 'Human in the Loop', onde a IA atua como suporte e o humano toma a decisão final.</p>`,
+                        question: {
+                            text: "Em decisões de alto impacto social, como justiça e saúde, qual modelo de uso da IA é eticamente mais recomendado hoje?",
+                            options: [
+                                "Substituição completa do julgamento humano para eliminar 100% dos vieses.",
+                                "Proibição global absoluta do uso de qualquer tecnologia computacional.",
+                                "Deixar a IA tomar decisões irreversíveis de forma totalmente autônoma.",
+                                "Utilizar a IA como ferramenta de suporte ('Human in the Loop'), mantendo a decisão final sob supervisão humana.",
+                                "Permitir que apenas máquinas reativas participem desses processos."
+                            ],
+                            correct: 3
+                        }
+                    },
+                    {
+                        title: "Semana 7: Fundamentos da IA Generativa",
+                        text: `<h2>Geração de Conteúdo</h2>
+                               <p>IA Generativa não apenas analisa, mas cria novos conteúdos (textos, imagens, códigos) baseada nos padrões aprendidos. Modelos de Linguagem Grande (LLMs) como GPT prevêem a probabilidade da próxima palavra, enquanto GANS e Modelos de Difusão geram imagens fotorealistas a partir de ruído.</p>`,
+                        question: {
+                            text: "Qual é a principal característica que difere a IA Generativa das IAs analíticas tradicionais?",
+                            options: [
+                                "Ela é incapaz de processar textos.",
+                                "Sua capacidade de apenas organizar e classificar dados numéricos em planilhas.",
+                                "Sua capacidade de criar conteúdos inteiramente novos, como imagens e textos inéditos, aprendendo com padrões prévios.",
+                                "Sua limitação a operar exclusivamente com hardwares dos anos 1970.",
+                                "Ela exige que o usuário programe todo o código fonte em Assembly antes de usar."
+                            ],
+                            correct: 2
+                        }
+                    }
+                ]
+            },
+            "projeto": {
+                name: "Projeto Multidisciplinar",
+                weeks: [
+                    {
+                        title: "Semana 1: Conceitos e Definições",
+                        text: `<h2>O que é um Projeto?</h2>
+                               <p>De acordo com o PMBOK, um projeto é "um esforço temporário empreendido para criar um produto, serviço ou resultado único". Projetos têm ciclo de vida (início, meio e fim), objetivos específicos e são conduzidos por pessoas gerindo recursos restritos para solucionar um problema ou desafio.</p>`,
+                        question: {
+                            text: "De acordo com o guia PMBOK, qual é a definição clássica de um projeto?",
+                            options: [
+                                "Um processo repetitivo e sem fim dentro de uma organização.",
+                                "Esforço temporário empreendido para criar um produto, serviço ou resultado único.",
+                                "Qualquer atividade rotineira de manutenção de sistemas antigos.",
+                                "Uma tentativa permanente de melhorar a velocidade da internet.",
+                                "Uma atividade contínua de gerenciamento financeiro corporativo."
+                            ],
+                            correct: 1
+                        }
+                    },
+                    {
+                        title: "Semana 2: Ciclo de Vida de um Projeto",
+                        text: `<h2>As Fases do Projeto</h2>
+                               <p>O ciclo de vida organiza o projeto do início ao fim: 1) Iniciação (Termo de Abertura); 2) Planejamento (cronograma e escopo); 3) Execução (realização das tarefas); 4) Monitoramento e Controle (acompanhamento e ajustes); 5) Encerramento (avaliação final e entrega).</p>`,
+                        question: {
+                            text: "Em qual fase do ciclo de vida de um projeto é redigido o 'Termo de Abertura do Projeto'?",
+                            options: [
+                                "Na fase de Encerramento.",
+                                "Na fase de Monitoramento e Controle.",
+                                "Na fase de Execução.",
+                                "Na fase de Iniciação.",
+                                "Na fase de Planejamento detalhado de recursos."
+                            ],
+                            correct: 3
+                        }
+                    },
+                    {
+                        title: "Semana 3: Processo Criativo e Ideação",
+                        text: `<h2>Definição do Problema</h2>
+                               <p>A criatividade é essencial para estruturar soluções inovadoras. Antes de planejar, realiza-se o Brainstorming (tempestade de ideias) categorizando os problemas, as tendências e oportunidades de melhoria da situação atual.</p>`,
+                        question: {
+                            text: "Qual é o principal objetivo do uso do Brainstorming no processo criativo de um projeto?",
+                            options: [
+                                "Definir o orçamento final de custos do projeto.",
+                                "Gerar o maior número possível de ideias livremente, para posteriormente organizá-las e priorizá-las.",
+                                "Demissão de membros da equipe que não têm ideias boas.",
+                                "Escrever o código-fonte da aplicação em linguagem Java.",
+                                "Monitorar se o projeto está sendo entregue no prazo estipulado."
+                            ],
+                            correct: 1
+                        }
+                    },
+                    {
+                        title: "Semana 4: Introdução ao Design Thinking",
+                        text: `<h2>A Abordagem Focada no Usuário</h2>
+                               <p>O Design Thinking coloca as pessoas no centro do processo para resolver problemas. Suas 5 fases são: 1) Empatia (entender o usuário); 2) Definição (focar no problema central); 3) Ideação (gerar ideias); 4) Prototipagem (criar versão testável); 5) Teste (feedback do usuário).</p>`,
+                        question: {
+                            text: "No Design Thinking, qual é o principal objetivo da fase de Empatia?",
+                            options: [
+                                "Compreender profundamente as necessidades, dores e sentimentos dos usuários envolvidos.",
+                                "Definir imediatamente qual linguagem de programação será usada.",
+                                "Montar o cronograma financeiro da prototipagem.",
+                                "Lançar a versão final do software no mercado.",
+                                "Testar a resistência do hardware do cliente."
+                            ],
+                            correct: 0
+                        }
+                    },
+                    {
+                        title: "Semana 5: Empatia e Matriz CSD",
+                        text: `<h2>Mapa de Empatia e Matriz CSD</h2>
+                               <p>O <strong>Mapa de Empatia</strong> visualiza o que o usuário pensa, ouve, vê e faz. A <strong>Matriz CSD</strong> organiza o projeto entre Certezas (fatos conhecidos), Suposições (hipóteses a confirmar) e Dúvidas (incertezas a investigar), clarificando o desafio.</p>`,
+                        question: {
+                            text: "Na utilização da Matriz CSD para organização do projeto, qual é a principal função da coluna 'Dúvidas'?",
+                            options: [
+                                "Listar as certezas absolutas do mercado financeiro.",
+                                "Identificar e explorar as incertezas, perguntas e pontos que ainda precisam de investigação clara.",
+                                "Registrar hipóteses que já foram cientificamente comprovadas pela equipe.",
+                                "Definir o escopo final e inalterável de tarefas técnicas.",
+                                "Eliminar totalmente as suposições do projeto."
+                            ],
+                            correct: 1
+                        }
+                    },
+                    {
+                        title: "Semana 6: O Framework Scrum",
+                        text: `<h2>Gerenciamento Ágil com Scrum</h2>
+                               <p>Scrum é um framework ágil focado em entregas de valor, transparência, inspeção e adaptação. Ele atua sobre um 'Product Backlog' de tarefas, divide o trabalho em ciclos curtos chamados 'Sprints', e mantém a equipe alinhada através de reuniões diárias (Daily Scrum).</p>`,
+                        question: {
+                            text: "Quais são os três pilares empíricos fundamentais que sustentam o funcionamento do framework Scrum?",
+                            options: [
+                                "Custos, Cronograma rígido e Chefia autoritária.",
+                                "Transparência, Inspeção e Adaptação.",
+                                "Prototipagem, Orçamento e Publicidade.",
+                                "Design, Codificação e Lançamento.",
+                                "Hierarquia forte, Documentação excessiva e Isolamento de equipe."
+                            ],
+                            correct: 1
+                        }
+                    },
+                    {
+                        title: "Semana 7: Escopo e Detalhamento",
+                        text: `<h2>Componentes do Escopo</h2>
+                               <p>O escopo oficializa a necessidade do projeto através de elementos como: Justificativa (por que o projeto existe), Finalidade (descrição do produto final), Objetivos SMART (Específico, Mensurável, Alcançável, Relevante, Temporal), Tempo, Custo e Partes Interessadas (Stakeholders).</p>`,
+                        question: {
+                            text: "De acordo com o modelo SMART de estruturação de objetivos, o que significa a letra 'M'?",
+                            options: [
+                                "Manual (Feito à mão).",
+                                "Mensurável (Que possui uma métrica para acompanhar o sucesso).",
+                                "Magnífico (Com grandes custos atrelados).",
+                                "Multidisciplinar (Que engloba 5 ou mais disciplinas).",
+                                "Monetário (Diretamente ligado aos lucros da empresa)."
+                            ],
+                            correct: 1
+                        }
+                    }
+                ]
+            }
         };
+
+        const alphabet = ['A', 'B', 'C', 'D', 'E'];
+        let currentDiscipline = null;
+        let currentWeek = null;
+
+        // Build Sidebar Menu
+        function buildMenu() {
+            const navContainer = document.getElementById('nav-container');
+            for (const [key, disc] of Object.entries(contentData)) {
+                
+                const btnDisc = document.createElement('button');
+                btnDisc.className = 'discipline-btn';
+                btnDisc.textContent = disc.name;
+                
+                const ulWeeks = document.createElement('ul');
+                ulWeeks.className = 'week-list';
+                ulWeeks.id = `list-${key}`;
+
+                disc.weeks.forEach((week, index) => {
+                    const li = document.createElement('li');
+                    const btnWeek = document.createElement('button');
+                    btnWeek.className = 'week-btn';
+                    btnWeek.textContent = week.title;
+                    btnWeek.onclick = () => loadContent(key, index, btnWeek);
+                    li.appendChild(btnWeek);
+                    ulWeeks.appendChild(li);
+                });
+
+                btnDisc.onclick = () => {
+                    const isOpen = ulWeeks.classList.contains('active');
+                    document.querySelectorAll('.week-list').forEach(el => el.classList.remove('active'));
+                    if (!isOpen) ulWeeks.classList.add('active');
+                };
+
+                navContainer.appendChild(btnDisc);
+                navContainer.appendChild(ulWeeks);
+            }
+        }
+
+        // Load Content
+        function loadContent(discKey, weekIndex, btnElement) {
+            document.querySelectorAll('.week-btn').forEach(btn => btn.classList.remove('selected'));
+            if(btnElement) btnElement.classList.add('selected');
+
+            if(window.innerWidth <= 768) toggleMenu(); // auto-close mobile menu
+
+            const discipline = contentData[discKey];
+            const week = discipline.weeks[weekIndex];
+
+            document.getElementById('disc-title').textContent = discipline.name;
+            document.getElementById('week-title').textContent = week.title;
+            document.getElementById('text-content').innerHTML = week.text;
+
+            renderQuiz(week.question);
+            renderLatex(week.question);
+        }
+
+        function renderQuiz(q) {
+            const quizArea = document.getElementById('quiz-area');
+            quizArea.innerHTML = `
+                <div class="quiz-container">
+                    <h2 style="margin-top:0; border:none;">Quiz de Fixação</h2>
+                    <div class="question-block">
+                        <div class="question-text">${q.text}</div>
+                        <div id="options-container">
+                            ${q.options.map((opt, i) => `
+                                <label class="option-label">
+                                    <input type="radio" name="quiz" value="${i}">
+                                    <strong>${alphabet[i]})</strong> ${opt}
+                                </label>
+                            `).join('')}
+                        </div>
+                        <button class="btn-submit" onclick="checkAnswer(${q.correct})">Responder</button>
+                        <div id="feedback-msg" class="feedback"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkAnswer(correctIndex) {
+            const selected = document.querySelector('input[name="quiz"]:checked');
+            const feedback = document.getElementById('feedback-msg');
+            
+            if (!selected) {
+                feedback.textContent = "Por favor, selecione uma alternativa.";
+                feedback.className = "feedback incorrect";
+                return;
+            }
+
+            const val = parseInt(selected.value);
+            if (val === correctIndex) {
+                feedback.innerHTML = `Acertou! A alternativa correta é a <strong>${alphabet[correctIndex]}</strong>. Muito bem.`;
+                feedback.className = "feedback correct";
+            } else {
+                feedback.innerHTML = `Incorreto. A alternativa correta era a <strong>${alphabet[correctIndex]}</strong>. Tente ler o resumo novamente.`;
+                feedback.className = "feedback incorrect";
+            }
+        }
+
+        function renderLatex(q) {
+            const latexArea = document.getElementById('latex-area');
+            const latexCode = `\\begin{question}
+${q.text}
+\\begin{alternatives}
+  \\item ${q.options[0]}
+  \\item ${q.options[1]}
+  \\item ${q.options[2]}
+  \\item ${q.options[3]}
+  \\item ${q.options[4]}
+\\end{alternatives}
+\\correctanswer{${alphabet[q.correct]}}
+\\end{question}`;
+
+            latexArea.innerHTML = `
+                <div class="latex-container">
+                    <h3>Código LaTeX da Questão (Para o Professor)</h3>
+                    <pre><code>${latexCode}</code></pre>
+                </div>
+            `;
+        }
 
         function toggleMenu() {
-            document.getElementById('navLinks').classList.toggle('show');
-        }
-
-        function changeSubject(subject) {
             const sidebar = document.getElementById('sidebar');
-            const navLinks = document.getElementById('navLinks');
-            
-            // Fecha menu mobile ao selecionar (melhora UX no celular)
-            if(window.innerWidth <= 768) {
-                navLinks.classList.remove('show');
-            }
-
-            // Atualiza botões ativos do menu superior
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-
-            // Limpa e popula sidebar com as semanas da matéria escolhida
-            sidebar.innerHTML = '';
-            if (data[subject]) {
-                data[subject].forEach((item, index) => {
-                    const btn = document.createElement('button');
-                    btn.className = 'week-btn';
-                    btn.innerText = item.title;
-                    btn.onclick = (e) => {
-                        document.getElementById('content').innerHTML = item.content;
-                        document.querySelectorAll('.week-btn').forEach(b => b.classList.remove('active'));
-                        e.currentTarget.classList.add('active');
-                    };
-                    
-                    // Simula clique na primeira semana para carregar automaticamente
-                    if(index === 0) {
-                        btn.click();
-                    }
-                    
-                    sidebar.appendChild(btn);
-                });
-            }
+            sidebar.classList.toggle('open');
         }
 
-        // Iniciar com a primeira disciplina (usando dispatchEvent para simular o clique e aplicar o active corretamente)
-        window.onload = () => {
-            const firstTab = document.querySelector('.tab-btn');
-            firstTab.click();
-        };
+        // Init
+        buildMenu();
     </script>
 </body>
 </html>
