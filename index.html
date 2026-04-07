@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resumo Interativo - 3C 2026</title>
+    <title>Resumo Interativo - Prof. Everton</title>
     <style>
         :root {
             --bg-main: #0f0f0f;
@@ -17,7 +17,7 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, sans-serif;
             background-color: var(--bg-main);
             color: var(--text-main);
             margin: 0;
@@ -27,28 +27,21 @@
             overflow: hidden;
         }
 
-        /* HEADER RESPONSIVO */
+        /* HEADER & NAV */
         header {
             background-color: var(--bg-panel);
             border-bottom: 1px solid var(--border);
-            padding: 15px 40px;
+            padding: 15px 25px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            flex-wrap: wrap;
+            position: relative;
             z-index: 1000;
         }
 
-        .title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
+        .title { font-size: 1.1rem; font-weight: 600; }
 
-        .nav-links {
-            display: flex;
-            gap: 10px;
-        }
+        .nav-links { display: flex; gap: 10px; }
 
         .tab-btn {
             background: transparent;
@@ -57,6 +50,7 @@
             padding: 8px 16px;
             cursor: pointer;
             border-radius: 6px;
+            font-size: 0.9rem;
             transition: 0.2s;
         }
 
@@ -66,7 +60,7 @@
             background: rgba(59, 130, 246, 0.1);
         }
 
-        /* BOTÃO HAMBÚRGUER (Escondido no Desktop) */
+        /* MENU HAMBÚRGUER */
         .menu-toggle {
             display: none;
             flex-direction: column;
@@ -74,24 +68,21 @@
             background: none;
             border: none;
             cursor: pointer;
+            padding: 5px;
         }
 
         .menu-toggle span {
             width: 25px;
-            height: 3px;
+            height: 2px;
             background: var(--text-main);
             border-radius: 2px;
         }
 
-        /* CONTAINER PRINCIPAL */
-        .container {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
+        /* LAYOUT */
+        .container { display: flex; flex: 1; overflow: hidden; }
 
         aside {
-            width: 260px;
+            width: 280px;
             background-color: var(--bg-panel);
             border-right: 1px solid var(--border);
             padding: 20px;
@@ -100,54 +91,75 @@
 
         main {
             flex: 1;
-            padding: 40px;
+            padding: 30px 50px;
             overflow-y: auto;
-            line-height: 1.6;
+            scroll-behavior: smooth;
         }
 
         .week-btn {
             display: block;
             width: 100%;
             text-align: left;
-            padding: 12px;
+            padding: 12px 15px;
             margin-bottom: 8px;
             background: transparent;
             border: 1px solid var(--border);
             color: var(--text-muted);
             border-radius: 6px;
             cursor: pointer;
+            font-size: 0.9rem;
         }
+
+        .week-btn:hover { background: var(--bg-hover); }
 
         .week-btn.active {
-            background: var(--bg-hover);
-            color: var(--text-main);
-            border-color: var(--text-muted);
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
         }
 
-        /* MEDIA QUERIES PARA MOBILE */
-        @media (max-width: 768px) {
-            header { padding: 15px 20px; }
-            
+        h1 { color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        h2 { color: var(--primary-hover); margin-top: 25px; }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 8px; }
+
+        /* RESPONSIVIDADE */
+        @media (max-width: 850px) {
             .menu-toggle { display: flex; }
-
+            
             .nav-links {
-                display: none; /* Esconde as abas no mobile */
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
                 width: 100%;
+                background: var(--bg-panel);
                 flex-direction: column;
-                padding-top: 15px;
+                padding: 15px;
+                border-bottom: 1px solid var(--border);
+                box-sizing: border-box;
             }
 
-            .nav-links.show {
-                display: flex;
-            }
+            .nav-links.show { display: flex; }
 
             .container { flex-direction: column; }
 
             aside {
                 width: 100%;
-                height: 180px;
+                height: 150px;
                 border-right: none;
                 border-bottom: 1px solid var(--border);
+                padding: 10px;
+                display: flex;
+                gap: 10px;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            .week-btn {
+                display: inline-block;
+                width: auto;
+                margin-bottom: 0;
             }
 
             main { padding: 20px; }
@@ -156,75 +168,94 @@
 </head>
 <body>
 
-    <header>
-        <div class="title">Avaliação 1º Bimestre</div>
+<header>
+    <div class="title">E.E. Pedro José Neto | 3C 2026</div>
+    <button class="menu-toggle" onclick="toggleMenu()">
+        <span></span><span></span><span></span>
+    </button>
+    <nav class="nav-links" id="navLinks">
+        <button class="tab-btn active" onclick="changeSubject('bd', this)">Banco de Dados</button>
+        <button class="tab-btn" onclick="changeSubject('ia', this)">Inteligência Artificial</button>
+        <button class="tab-btn" onclick="changeSubject('redes', this)">Redes</button>
+    </nav>
+</header>
+
+<div class="container">
+    <aside id="sidebar"></aside>
+    <main id="content">
+        <h1>Selecione uma disciplina acima</h1>
+        <p>Clique nas semanas à esquerda para visualizar o resumo do conteúdo.</p>
+    </main>
+</div>
+
+<script>
+    const database = {
+        bd: [
+            { title: "Sem. 1: Conceitos Iniciais", content: "<h1>Sistemas de Banco de Dados</h1><h2>O que é um BD?</h2><p>Coleção organizada de dados que permite armazenamento e recuperação eficiente.</p><ul><li><strong>SGBD:</strong> Software que gerencia os dados (MySQL, PostgreSQL).</li><li><strong>Dados vs Informação:</strong> Dados são brutos; informação é o dado processado com contexto.</li></ul>" },
+            { title: "Sem. 2: Levantamento", content: "<h1>Levantamento de Requisitos</h1><h2>Entidades e Atributos</h2><ul><li><strong>Entidade:</strong> Objeto do mundo real (Aluno, Carro).</li><li><strong>Atributo:</strong> Características da entidade (Nome, Cor).</li><li><strong>Técnicas:</strong> Entrevistas, Questionários e Observação.</li></ul>" },
+            { title: "Sem. 3: Modelo ER", content: "<h1>Modelo Entidade-Relacionamento</h1><h2>Componentes do DER</h2><ul><li><strong>Retângulos:</strong> Entidades.</li><li><strong>Losangos:</strong> Relacionamentos.</li><li><strong>Elipses:</strong> Atributos.</li><li><strong>PK (Primary Key):</strong> Identificador único que não se repete.</li></ul>" },
+            { title: "Sem. 4: Relacionamentos", content: "<h1>Tipos de Cardinalidade</h1><ul><li><strong>1:1 (Um para Um):</strong> Ex: Pessoa e CPF.</li><li><strong>1:N (Um para Muitos):</strong> Ex: Cliente e Pedidos.</li><li><strong>N:M (Muitos para Muitos):</strong> Ex: Alunos e Disciplinas.</li></ul>" },
+            { title: "Sem. 5: Ferramentas CASE", content: "<h1>MySQL Workbench</h1><p>Uso de ferramentas CASE para automatizar a modelagem.</p><ul><li><strong>Forward Engineering:</strong> Transforma o diagrama em código SQL.</li><li><strong>Reverse Engineering:</strong> Transforma o banco existente em diagrama.</li></ul>" },
+            { title: "Sem. 6: Normalização (1FN/2FN)", content: "<h1>Normalização de Dados</h1><ul><li><strong>1FN:</strong> Atributos atômicos (sem listas ou grupos repetidos).</li><li><strong>2FN:</strong> Estar na 1FN e todos os atributos dependerem da chave primária total.</li></ul>" },
+            { title: "Sem. 7: 3FN e Desnormalização", content: "<h1>Terceira Forma Normal</h1><ul><li><strong>3FN:</strong> Elimina dependências transitivas.</li><li><strong>Desnormalização:</strong> Quando usamos? Para ganho de performance em grandes volumes de leitura.</li></ul>" }
+        ],
+        ia: [
+            { title: "Sem. 1: Introdução à IA", content: "<h1>O que é IA?</h1><p>Sistemas que simulam inteligência humana.</p><ul><li><strong>IA Fraca:</strong> Especializada em uma tarefa (ChatGPT).</li><li><strong>IA Forte:</strong> Consciência nível humano (Hipotética).</li></ul>" },
+            { title: "Sem. 2: Histórico", content: "<h1>Evolução da IA</h1><ul><li><strong>Teste de Turing:</strong> Uma máquina consegue se passar por humano?</li><li><strong>Inverno da IA:</strong> Períodos de corte de investimento por falta de resultados.</li></ul>" },
+            { title: "Sem. 3: Aprendizado", content: "<h1>Machine Learning</h1><ul><li><strong>Supervisionado:</strong> Dados rotulados (Entrada -> Saída).</li><li><strong>Não Supervisionado:</strong> Agrupamento (Clustering).</li><li><strong>Reforço:</strong> Tentativa e erro com recompensa.</li></ul>" },
+            { title: "Sem. 4: Redes Neurais", content: "<h1>Deep Learning</h1><p>Inspirado nos neurônios biológicos.</p><ul><li><strong>Camadas:</strong> Entrada, Ocultas e Saída.</li><li><strong>Aplicações:</strong> Reconhecimento facial, tradução simultânea.</li></ul>" },
+            { title: "Sem. 5: Visão Computacional", content: "<h1>Processamento de Imagem</h1><p>Como computadores 'enxergam'.</p><ul><li><strong>Filtros e Convoluções:</strong> Detecção de bordas e padrões.</li></ul>" },
+            { title: "Sem. 6: NLP", content: "<h1>Linguagem Natural</h1><p>Processamento de textos e fala.</p><ul><li><strong>Tokens:</strong> Divisão do texto em partes menores.</li><li><strong>LLMs:</strong> Modelos de linguagem de grande escala.</li></ul>" },
+            { title: "Sem. 7: Ética na IA", content: "<h1>Desafios Éticos</h1><ul><li><strong>Viés Algorítmico:</strong> Preconceitos nos dados de treino.</li><li><strong>Privacidade:</strong> Uso de dados pessoais para treinamento.</li></ul>" }
+        ],
+        redes: [
+            { title: "Sem. 1: Conceitos", content: "<h1>O que é uma Rede?</h1><p>Interconexão de dispositivos para troca de dados.</p><ul><li><strong>PAN:</strong> Pessoal (Bluetooth).</li><li><strong>LAN:</strong> Local (Sua casa).</li><li><strong>WAN:</strong> Global (Internet).</li></ul>" },
+            { title: "Sem. 2: Topologias", content: "<h1>Arquitetura Física</h1><ul><li><strong>Estrela:</strong> Todos ligam a um switch central (Padrão atual).</li><li><strong>Barramento:</strong> Um único cabo central.</li><li><strong>Malha (Mesh):</strong> Todos conectados entre si.</li></ul>" },
+            { title: "Sem. 3: Modelo OSI", content: "<h1>As 7 Camadas OSI</h1><ol><li>Física</li><li>Enlace</li><li>Rede</li><li>Transporte</li><li>Sessão</li><li>Apresentação</li><li>Aplicação</li></ol>" },
+            { title: "Sem. 4: Protocolos IP", content: "<h1>Endereçamento IP</h1><ul><li><strong>IPv4:</strong> 32 bits (ex: 192.168.1.1).</li><li><strong>IPv6:</strong> 128 bits (Cura a escassez de IPs).</li></ul>" },
+            { title: "Sem. 5: Camada Transporte", content: "<h1>TCP vs UDP</h1><ul><li><strong>TCP:</strong> Confiável, confirma entrega (ex: E-mail).</li><li><strong>UDP:</strong> Rápido, não garante entrega (ex: Streaming/Jogos).</li></ul>" },
+            { title: "Sem. 6: Equipamentos", content: "<h1>Hardware de Rede</h1><ul><li><strong>Switch:</strong> Conecta dispositivos na LAN.</li><li><strong>Roteador:</strong> Conecta redes diferentes (Sua casa à Internet).</li></ul>" },
+            { title: "Sem. 7: Segurança", content: "<h1>Fundamentos de Segurança</h1><ul><li><strong>Firewall:</strong> Barreira de tráfego.</li><li><strong>Criptografia:</strong> Proteção dos dados em trânsito.</li></ul>" }
+        ]
+    };
+
+    function toggleMenu() {
+        document.getElementById('navLinks').classList.toggle('show');
+    }
+
+    function changeSubject(subject, btn) {
+        // UI
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('navLinks').classList.remove('show');
+
+        // Sidebar
+        const sidebar = document.getElementById('sidebar');
+        sidebar.innerHTML = '';
         
-        <button class="menu-toggle" onclick="toggleMenu()">
-            <span></span><span></span><span></span>
-        </button>
-
-        <nav class="nav-links" id="navLinks">
-            <button class="tab-btn active" onclick="changeSubject('bd')">Banco de Dados</button>
-            <button class="tab-btn" onclick="changeSubject('ia')">Inteligência Artificial</button>
-            <button class="tab-btn" onclick="changeSubject('redes')">Redes</button>
-        </nav>
-    </header>
-
-    <div class="container">
-        <aside id="sidebar">
-            </aside>
-        <main id="content">
-            <h1>Bem-vindo, Everton.</h1>
-            <p>Selecione uma disciplina e uma semana para revisar o conteúdo.</p>
-        </main>
-    </div>
-
-    <script>
-        // Exemplo de estrutura de dados (Simplificada para o exemplo)
-        const data = {
-            bd: [
-                { title: "Semana 1: Introdução", content: "<h1>Conceitos de BD</h1><p>Conteúdo da aula de Banco de Dados...</p>" },
-                { title: "Semana 2: Modelagem", content: "<h1>Entidades e Atributos</h1><p>Explicação sobre DER...</p>" }
-            ],
-            ia: [
-                { title: "Semana 1: O que é IA?", content: "<h1>IA e Machine Learning</h1><p>Introdução ao mundo da IA...</p>" }
-            ]
-        };
-
-        function toggleMenu() {
-            document.getElementById('navLinks').classList.toggle('show');
-        }
-
-        function changeSubject(subject) {
-            const sidebar = document.getElementById('sidebar');
-            const navLinks = document.getElementById('navLinks');
+        database[subject].forEach((item, index) => {
+            const wBtn = document.createElement('button');
+            wBtn.className = 'week-btn';
+            wBtn.innerText = item.title;
+            wBtn.onclick = function() {
+                document.querySelectorAll('.week-btn').forEach(wb => wb.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById('content').innerHTML = item.content;
+                // Scroll ao topo no mobile ao trocar semana
+                if(window.innerWidth < 850) document.getElementById('content').scrollIntoView();
+            };
+            sidebar.appendChild(wBtn);
             
-            // Fecha menu mobile ao selecionar
-            navLinks.classList.remove('show');
+            // Carrega a primeira semana automaticamente
+            if(index === 0) wBtn.click();
+        });
+    }
 
-            // Atualiza botões ativos
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+    // Inicialização
+    window.onload = () => {
+        changeSubject('bd', document.querySelector('.tab-btn'));
+    };
+</script>
 
-            // Limpa e popula sidebar
-            sidebar.innerHTML = '';
-            if (data[subject]) {
-                data[subject].forEach((item, index) => {
-                    const btn = document.createElement('button');
-                    btn.className = 'week-btn';
-                    btn.innerText = item.title;
-                    btn.onclick = () => {
-                        document.getElementById('content').innerHTML = item.content;
-                        document.querySelectorAll('.week-btn').forEach(b => b.classList.remove('active'));
-                        btn.classList.add('active');
-                    };
-                    sidebar.appendChild(btn);
-                });
-            }
-        }
-
-        // Iniciar com a primeira disciplina
-        window.onload = () => changeSubject('bd');
-    </script>
 </body>
 </html>
